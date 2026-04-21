@@ -1,13 +1,7 @@
 package cl.duoc.pichangapp.users_service.Model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,16 +19,19 @@ public class User {
     // Identificador numérico autoincremental
 
     @Column(nullable = false, length = 100, unique = true)
-    private String correo;
+    private String correo; // Correo único para login
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false, length = 255)
-    private String contrasena;
+    private String contrasena; // Contraseña encriptada
 
     @Column(nullable = false, length = 50)
-    private String nombre;
+    private String nombre; // Nombre del usuario
 
     @Column(nullable = false, length = 50)
-    private String apellido;
+    private String apellido; // Apellido del usuario
+
+    @Column(nullable = false)
+    private boolean enabled = false; 
+    // Estado de verificación de la cuenta (true cuando el usuario está validado)
 }
-
