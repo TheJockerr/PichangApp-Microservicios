@@ -7,9 +7,9 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.http.HttpStatus;
 
 @Configuration
 public class SecurityConfig {
@@ -29,16 +29,16 @@ public class SecurityConfig {
             // No crear sesión (JWT stateless)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // Manejo de excepciones: devolver 403 cuando corresponda
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(new Http403ForbiddenEntryPoint()))
+            // Manejo de excepciones: devolver 401 cuando no hay autenticación
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 
             // Reglas de autorización
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos (registro, login, enable)
-                .requestMatchers(new AntPathRequestMatcher("/api/v1/auth/**")).permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
                 // Actuator y error deben permitirse para evitar bucles de error
-                .requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll()
-                .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
             )
