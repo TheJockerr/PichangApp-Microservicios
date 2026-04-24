@@ -18,8 +18,7 @@ import java.util.List;
  * Filtro que extrae el token JWT del header Authorization,
  * valida el token con JwtProvider y, si es válido, coloca una Authentication en el contexto.
  *
- * Nota: aquí no cargamos UserDetails desde la BD para mantenerlo simple.
- * El principal será el userId (String) y las autoridades se dejan vacías o con un rol básico.
+ * Ajustado para que las rutas públicas /api/v1/auth/**, /error y /actuator/** pasen sin validación de token.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -30,27 +29,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtProvider = jwtProvider;
     }
 
+    /**
+     * Determina qué rutas no deben ser filtradas por JWT.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        return path.startsWith("/api/v1/auth/")
+                || path.equals("/error")
+                || path.startsWith("/actuator/");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
             try {
                 if (jwtProvider.validateToken(token)) {
                     String subject = jwtProvider.getSubject(token); // normalmente userId
-                    // Crear Authentication simple con el subject como principal
                     UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(subject, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                            new UsernamePasswordAuthenticationToken(
+                                    subject,
+                                    null,
+                                    List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                            );
                     SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    SecurityContextHolder.clearContext();
                 }
             } catch (Exception ex) {
-                // Si el token es inválido, no seteamos autenticación y dejamos que la petición falle en la capa de seguridad
                 SecurityContextHolder.clearContext();
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }
