@@ -1,8 +1,8 @@
-package cl.duoc.pichangapp.users_service.Controller;
+package cl.duoc.pichangapp.users_service.controller;
 
 
-import cl.duoc.pichangapp.users_service.DTO.*;
-import cl.duoc.pichangapp.users_service.Service.UserService;
+import cl.duoc.pichangapp.users_service.dto.*;
+import cl.duoc.pichangapp.users_service.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,4 +82,5 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 }
+
 

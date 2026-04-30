@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 /**
  * DTO para cambiar la contraseña de un usuario.
@@ -8,4 +8,5 @@ public record ChangePasswordRequest(
         String currentPassword, // Contraseña actual en texto plano (para verificar)
         String newPassword      // Nueva contraseña en texto plano (se encripta en el service)
 ) {}
+
 

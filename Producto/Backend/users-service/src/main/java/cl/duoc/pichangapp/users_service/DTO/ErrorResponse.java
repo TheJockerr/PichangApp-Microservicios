@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 import java.time.Instant;
 
@@ -11,3 +11,4 @@ public record ErrorResponse(
         String code,       // Código corto del error (ej. "USER_NOT_FOUND")
         Instant timestamp  // Marca de tiempo del error
 ) {}
+

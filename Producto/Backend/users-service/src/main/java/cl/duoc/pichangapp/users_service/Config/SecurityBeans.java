@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.Config;
+package cl.duoc.pichangapp.users_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,3 +21,4 @@ public class SecurityBeans {
         return new BCryptPasswordEncoder();
     }
 }
+

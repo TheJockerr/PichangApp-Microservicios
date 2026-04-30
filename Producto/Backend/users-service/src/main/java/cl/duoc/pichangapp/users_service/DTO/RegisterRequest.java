@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 /**
  * DTO para registrar un nuevo usuario.
@@ -11,3 +11,4 @@ public record RegisterRequest(
         String nombre,    // Nombre del usuario
         String apellido   // Apellido del usuario
 ) {}
+

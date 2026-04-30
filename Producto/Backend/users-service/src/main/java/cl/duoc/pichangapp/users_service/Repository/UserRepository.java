@@ -1,10 +1,10 @@
-package cl.duoc.pichangapp.users_service.Repository;
+package cl.duoc.pichangapp.users_service.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import cl.duoc.pichangapp.users_service.Model.User;
+import cl.duoc.pichangapp.users_service.model.User;
 
 public interface UserRepository extends JpaRepository<User, Integer>{
     /**
@@ -19,3 +19,4 @@ public interface UserRepository extends JpaRepository<User, Integer>{
      */
     boolean existsByCorreo(String correo);
 }
+

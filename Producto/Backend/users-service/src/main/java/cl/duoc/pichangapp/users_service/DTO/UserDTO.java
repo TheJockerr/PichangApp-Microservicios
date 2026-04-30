@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 /**
  * DTO que representa la información pública de un usuario.
@@ -11,5 +11,6 @@ public record UserDTO(
         String apellido,  // Apellido
         boolean enabled   // Estado de verificación de la cuenta
 ) {}
+
 
 

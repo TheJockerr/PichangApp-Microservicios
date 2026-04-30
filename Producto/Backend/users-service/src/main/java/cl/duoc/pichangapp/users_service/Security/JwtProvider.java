@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.Security;
+package cl.duoc.pichangapp.users_service.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -74,4 +74,5 @@ public class JwtProvider {
         return expirationMs;
     }
 }
+
 

@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.Security;
+package cl.duoc.pichangapp.users_service.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,35 +23,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Deshabilitar CSRF para APIs stateless
             .csrf(csrf -> csrf.disable())
-
-            // No crear sesión (JWT stateless)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            // Manejo de excepciones: devolver 401 cuando no hay autenticación
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-
-            // Reglas de autorización
             .authorizeHttpRequests(auth -> auth
-                // Endpoints públicos (registro, login, enable)
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                // Actuator y error deben permitirse para evitar bucles de error
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                // Cualquier otra petición requiere autenticación
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
             )
-
-            // Añadir el filtro JWT antes del filtro de autenticación por formulario
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Bean de AuthenticationManager para inyección cuando sea necesario.
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();

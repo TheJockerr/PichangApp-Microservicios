@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 
 /**
@@ -11,4 +11,5 @@ public record JWTResponse(
         long expiresIn,  // Tiempo en milisegundos hasta la expiración del token
         UserDTO user     // Información pública del usuario autenticado
 ) {}
+
 

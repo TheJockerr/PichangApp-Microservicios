@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.Security;
+package cl.duoc.pichangapp.users_service.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,12 +14,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Filtro que extrae el token JWT del header Authorization,
- * valida el token con JwtProvider y, si es válido, coloca una Authentication en el contexto.
- *
- * Ajustado para que las rutas públicas /api/v1/auth/**, /error y /actuator/** pasen sin validación de token.
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -29,15 +23,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtProvider = jwtProvider;
     }
 
-    /**
-     * Determina qué rutas no deben ser filtradas por JWT.
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
         return path.startsWith("/api/v1/auth/")
                 || path.equals("/error")
-                || path.startsWith("/actuator/");
+                || path.startsWith("/actuator/")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui");
     }
 
     @Override
@@ -51,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             try {
                 if (jwtProvider.validateToken(token)) {
-                    String subject = jwtProvider.getSubject(token); // normalmente userId
+                    String subject = jwtProvider.getSubject(token);
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(
                                     subject,

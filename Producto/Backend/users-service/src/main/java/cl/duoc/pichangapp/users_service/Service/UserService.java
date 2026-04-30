@@ -1,6 +1,6 @@
-package cl.duoc.pichangapp.users_service.Service;
+package cl.duoc.pichangapp.users_service.service;
 
-import cl.duoc.pichangapp.users_service.DTO.*;
+import cl.duoc.pichangapp.users_service.dto.*;
 
 import java.util.Optional;
 
@@ -48,5 +48,11 @@ public interface UserService {
      * Busca usuario por correo y devuelve UserDto si existe.
      */
     Optional<UserDTO> findByCorreo(String correo);
+
+    /**
+     * Verifica si un usuario existe por su ID.
+     */
+    boolean existsById(Integer id);
 }
+
 

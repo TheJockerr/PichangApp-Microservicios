@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 /**
  * DTO para actualizar el perfil del usuario.
@@ -8,3 +8,4 @@ public record UpdateProfileRequest(
         String nombre,   // Nuevo nombre (opcional)
         String apellido  // Nuevo apellido (opcional)
 ) {}
+

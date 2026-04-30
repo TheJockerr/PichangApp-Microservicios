@@ -1,15 +1,15 @@
-package cl.duoc.pichangapp.users_service.Service.impl;
+package cl.duoc.pichangapp.users_service.service.impl;
 
-import cl.duoc.pichangapp.users_service.DTO.ChangePasswordRequest;
-import cl.duoc.pichangapp.users_service.DTO.JWTResponse;
-import cl.duoc.pichangapp.users_service.DTO.LoginRequest;
-import cl.duoc.pichangapp.users_service.DTO.RegisterRequest;
-import cl.duoc.pichangapp.users_service.DTO.UpdateProfileRequest;
-import cl.duoc.pichangapp.users_service.DTO.UserDTO;
-import cl.duoc.pichangapp.users_service.Model.User; // <- cambia si tu User está en otro paquete
-import cl.duoc.pichangapp.users_service.Repository.UserRepository;
-import cl.duoc.pichangapp.users_service.Security.JwtProvider;
-import cl.duoc.pichangapp.users_service.Service.UserService;
+import cl.duoc.pichangapp.users_service.dto.ChangePasswordRequest;
+import cl.duoc.pichangapp.users_service.dto.JWTResponse;
+import cl.duoc.pichangapp.users_service.dto.LoginRequest;
+import cl.duoc.pichangapp.users_service.dto.RegisterRequest;
+import cl.duoc.pichangapp.users_service.dto.UpdateProfileRequest;
+import cl.duoc.pichangapp.users_service.dto.UserDTO;
+import cl.duoc.pichangapp.users_service.model.User; // <- cambia si tu User está en otro paquete
+import cl.duoc.pichangapp.users_service.repository.UserRepository;
+import cl.duoc.pichangapp.users_service.security.JwtProvider;
+import cl.duoc.pichangapp.users_service.service.UserService;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -150,8 +150,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByCorreo(correo.toLowerCase().trim()).map(this::mapToDto);
     }
 
+    @Override
+    public boolean existsById(Integer id) {
+        return userRepository.existsById(id);
+    }
+
     // Mapeo entidad -> DTO (ajusta si tu DTO se llama distinto)
     private UserDTO mapToDto(User u) {
         return new UserDTO(u.getId(), u.getCorreo(), u.getNombre(), u.getApellido(), u.isEnabled());
     }
 }
+

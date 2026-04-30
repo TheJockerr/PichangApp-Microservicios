@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.Model;
+package cl.duoc.pichangapp.users_service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -35,3 +35,4 @@ public class User {
     private boolean enabled = false; 
     // Estado de verificación de la cuenta (true cuando el usuario está validado)
 }
+

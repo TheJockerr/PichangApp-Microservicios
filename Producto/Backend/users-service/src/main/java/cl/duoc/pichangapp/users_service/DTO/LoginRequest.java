@@ -1,4 +1,4 @@
-package cl.duoc.pichangapp.users_service.DTO;
+package cl.duoc.pichangapp.users_service.dto;
 
 /**
  * DTO para autenticación (login).
@@ -8,4 +8,5 @@ public record LoginRequest(
         String correo,   // Correo electrónico usado para identificar al usuario
         String password  // Contraseña en texto plano para validar
 ) {}
+
 
