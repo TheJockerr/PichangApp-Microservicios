@@ -4,9 +4,10 @@ Write-Host "[PichangApp] Iniciando microservicios..." -ForegroundColor Cyan
 
 # Definir rutas y puertos
 $services = @(
-    @{ Name = "users-service"; Path = "users-service"; Port = 8080 },
+    @{ Name = "users-service"; Path = "users-service"; Port = 8083 },
     @{ Name = "karma_service"; Path = "karma_service"; Port = 8081 },
-    @{ Name = "notification-service"; Path = "notification-service"; Port = 8082 }
+    @{ Name = "notification-service"; Path = "notification-service"; Port = 8082 },
+    @{ Name = "api-gateway"; Path = "api-gateway"; Port = 8080 }
 )
 
 foreach ($service in $services) {

@@ -1,7 +1,7 @@
 # [PichangApp] E2E Test Suite - Notification Service
 
 $ErrorActionPreference = "Stop"
-$baseUrl = "http://localhost:8082/api/v1/notifications"
+$baseUrl = "http://localhost:8080/api/v1/notifications"
 $authUrl = "http://localhost:8080/api/v1/auth/login"
 
 function Print-Result {
@@ -73,7 +73,7 @@ try {
 
 # --- TEST 6: Conexión WebSocket ---
 try {
-    $wsUri = New-Object System.Uri("ws://localhost:8082/ws/websocket") # SockJS raw websocket path
+    $wsUri = New-Object System.Uri("ws://localhost:8080/ws/websocket") # SockJS raw websocket path
     $wsClient = New-Object System.Net.WebSockets.ClientWebSocket
     $cts = New-Object System.Threading.CancellationTokenSource
     $task = $wsClient.ConnectAsync($wsUri, $cts.Token)

@@ -1,0 +1,9 @@
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\ApiGatewayApplication.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\exception\GlobalErrorHandler.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\health\ServicesHealthController.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\filter\LoggingFilter.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\config\SecurityConfig.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\filter\RateLimitingFilter.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\filter\JwtAuthenticationFilter.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\config\CorsConfig.java
+C:\Users\esteban\Desktop\Esteban\Proyectos\Taller de Programación\PichangApp-Microservicios\Producto\Backend\api-gateway\src\main\java\cl\duoc\pichangapp\api_gateway\security\JwtProvider.java
