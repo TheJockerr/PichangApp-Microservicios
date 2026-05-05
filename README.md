@@ -50,4 +50,43 @@ Siguiendo los lineamientos de la asignatura:
 3. **Semana 15:** Control de Calidad y Pruebas Unitarias/Integración (Experiencia 3).
 
 ---
+---
 *Este proyecto es parte de la asignatura Taller Aplicado de Programación (TPY1101) - Duoc UC.*
+
+## 🧪 Testing Local
+
+Sigue estos pasos para validar que todo el ecosistema de microservicios está funcionando correctamente:
+
+### 1. Prerrequisitos
+- **Laragon** iniciado con MySQL 8.
+- Bases de datos creadas ejecutando los scripts SQL correspondientes:
+  - `Producto/Backend/users-service/sql/init_users.sql`
+  - `Producto/Backend/karma_service/sql/init_karma.sql`
+  - `Producto/Backend/notification-service/sql/init_notification.sql`
+- Datos de prueba cargados:
+  ```powershell
+  # Ejecuta esto en tu gestor de DB o desde la terminal de Laragon
+  mysql -u root < Producto/Backend/sql/init-test-data.sql
+  ```
+
+### 2. Arranque de Servicios
+Para iniciar los tres microservicios (`users`, `karma`, `notification`) simultáneamente:
+```powershell
+cd Producto/Backend
+.\start-all.ps1
+```
+Este script abrirá tres ventanas de PowerShell. Esperará 15 segundos y validará el estado de salud (`Actuator Health`) de cada uno.
+
+### 3. Ejecución de Pruebas E2E
+Para validar el flujo completo de notificaciones (Login -> JWT -> Registro Token -> Envío -> Historial -> WebSocket):
+```powershell
+cd Producto/Backend
+.\test-notifications.ps1
+```
+
+### 4. Interpretación de Resultados
+- **[PASS]**: La prueba se completó con éxito.
+- **[FAIL]**: Ocurrió un error (el servicio no responde o devolvió un código inesperado). Revisa los logs en las ventanas abiertas por `start-all.ps1`.
+- **TEST 6 (WebSocket)**: Valida la conectividad básica con el broker STOMP.
+- **TEST 7 (Sin JWT)**: Valida que la seguridad esté activa (debe retornar 401).
+
