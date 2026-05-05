@@ -9,6 +9,8 @@ import cl.duoc.pichangapp.karma_service.model.KarmaScore;
 import cl.duoc.pichangapp.karma_service.repository.KarmaHistoryRepository;
 import cl.duoc.pichangapp.karma_service.repository.KarmaScoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,9 +30,11 @@ public class KarmaService {
     private final KarmaHistoryRepository karmaHistoryRepository;
     private final RestTemplate restTemplate;
 
+    @Value("${USERS_SERVICE_URL:http://localhost:8083}")
+    private String usersServiceUrl;
+
     private static final int INITIAL_KARMA = 100;
     private static final int MIN_KARMA = 0;
-    private static final String USERS_SERVICE_URL = "http://localhost:8080/api/v1/users/";
 
     @Transactional
     public KarmaResponseDTO getKarmaByUserId(String userId) {
@@ -58,9 +62,9 @@ public class KarmaService {
         KarmaScore score = getOrCreateKarmaScore(dto.userId());
         int amount = dto.isPositiveValidation() ? 5 : -5;
         String actionStr = dto.isPositiveValidation() ? "positiva" : "negativa";
-        String reason = String.format("Validación %s del organizador (%s) para el evento: %s", 
+        String reason = String.format("Validación %s del organizador (%s) para el evento: %s",
                 actionStr, dto.organizerId(), dto.eventId());
-        
+
         updateKarma(score, amount, reason);
         return buildResponseDTO(score);
     }
@@ -68,7 +72,7 @@ public class KarmaService {
     private void validateUserExistsInUsersService(String userId) {
         try {
             int id = Integer.parseInt(userId);
-            
+
             ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attrs != null) {
                 String authHeader = attrs.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
@@ -77,14 +81,13 @@ public class KarmaService {
                     headers.set(HttpHeaders.AUTHORIZATION, authHeader);
                 }
                 HttpEntity<?> entity = new HttpEntity<>(headers);
-                
+
                 ResponseEntity<Boolean> response = restTemplate.exchange(
-                        USERS_SERVICE_URL + id + "/exists",
+                        usersServiceUrl + (usersServiceUrl.endsWith("/") ? "" : "/") + id + "/exists",
                         HttpMethod.GET,
                         entity,
-                        Boolean.class
-                );
-                
+                        Boolean.class);
+
                 if (response.getBody() == null || !Boolean.TRUE.equals(response.getBody())) {
                     throw new UserNotFoundException("Usuario con ID " + userId + " no existe en users-service.");
                 }
@@ -94,15 +97,13 @@ public class KarmaService {
         } catch (HttpClientErrorException.NotFound e) {
             throw new UserNotFoundException("Usuario con ID " + userId + " no existe en users-service.");
         } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden e) {
-            // Ignorar en testing o lanzar si estrictamente necesario, pero para evitar trabas:
-            throw new RuntimeException("No autorizado para consultar users-service. Asegúrate de enviar un Token JWT válido.");
+            throw new RuntimeException(
+                    "No autorizado para consultar users-service. Asegúrate de enviar un Token JWT válido.");
+        } catch (UserNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-             // Si el microservicio está caído, podríamos lanzar excepción o permitir la creación.
-             // Para microservicios es mejor fallar rápido (Fail Fast)
-             if (e instanceof UserNotFoundException || e.getMessage().contains("No autorizado")) {
-                 throw e;
-             }
-             throw new RuntimeException("Error al comunicar con users-service para validar usuario", e);
+            throw new RuntimeException("Error al comunicar con users-service para validar usuario: " + e.getMessage(),
+                    e);
         }
     }
 
@@ -125,7 +126,7 @@ public class KarmaService {
         if (newScore < MIN_KARMA) {
             newScore = MIN_KARMA;
         }
-        
+
         score.setKarmaScore(newScore);
         karmaScoreRepository.save(score);
 
@@ -143,9 +144,12 @@ public class KarmaService {
     }
 
     private String determineCategory(int score) {
-        if (score >= 80) return "Excelente";
-        if (score >= 60) return "Bueno";
-        if (score >= 40) return "Regular";
+        if (score >= 80)
+            return "Excelente";
+        if (score >= 60)
+            return "Bueno";
+        if (score >= 40)
+            return "Regular";
         return "Bajo";
     }
 }

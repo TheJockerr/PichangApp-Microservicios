@@ -154,7 +154,8 @@ public class NotificationService {
         } catch (IllegalArgumentException e) {
             throw new NotificationException(
                     "Tipo de notificación inválido: " + type + 
-                    ". Valores permitidos: KARMA_INCREASE, KARMA_DECREASE, EVENT_REMINDER, EVENT_CANCELLED, NEW_EVENT_NEARBY"
+                    ". Valores permitidos: KARMA_INCREASE, KARMA_DECREASE, EVENT_REMINDER, EVENT_CANCELLED, NEW_EVENT_NEARBY",
+                    e
             );
         }
     }

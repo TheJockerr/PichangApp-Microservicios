@@ -45,8 +45,7 @@ public class FcmService {
             return;
         }
 
-        try {
-            FileInputStream serviceAccount = new FileInputStream(credentialsPath);
+        try (FileInputStream serviceAccount = new FileInputStream(credentialsPath)) {
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .setProjectId(projectId)

@@ -56,8 +56,8 @@ public class ServicesHealthController {
         return webClient.get()
                 .uri(url + "/actuator/health")
                 .retrieve()
-                .bodyToMono(Map.class)
-                .map(body -> body.containsKey("status") ? body.get("status").toString() : "DOWN")
+                .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+                .map(body -> body != null && body.containsKey("status") ? body.get("status").toString() : "DOWN")
                 .onErrorResume(e -> Mono.just("DOWN (" + e.getMessage() + ")"));
     }
 }

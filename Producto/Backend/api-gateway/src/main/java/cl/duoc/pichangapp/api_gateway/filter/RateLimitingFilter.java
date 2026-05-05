@@ -20,8 +20,8 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
     private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
     
     // Configuración: 100 peticiones por minuto
-    private final int capacity = 100;
-    private final int refillRate = 100; // tokens por minuto
+    private static final int CAPACITY = 100;
+    private static final int REFILL_RATE = 100; // tokens por minuto
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -29,7 +29,7 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
                 ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() 
                 : "unknown";
 
-        TokenBucket bucket = buckets.computeIfAbsent(ip, k -> new TokenBucket(capacity, refillRate));
+        TokenBucket bucket = buckets.computeIfAbsent(ip, k -> new TokenBucket(CAPACITY, REFILL_RATE));
 
         if (bucket.tryConsume()) {
             return chain.filter(exchange);

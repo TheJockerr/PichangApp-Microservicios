@@ -14,7 +14,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
             .csrf(csrf -> csrf.disable()) // Deshabilitar CSRF para APIs REST
-            .cors(cors -> {}) // Usa la configuración de CorsWebFilter provista en CorsConfig
+            .cors(org.springframework.security.config.Customizer.withDefaults()) // Usa la configuración de CorsWebFilter provista en CorsConfig
             .authorizeExchange(exchanges -> exchanges
                 // Permitir todo el trafico a nivel de Spring Security.
                 // La autorización y validación del JWT la haremos manualmente
