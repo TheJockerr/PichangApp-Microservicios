@@ -1,7 +1,7 @@
 package cl.duoc.pichangapp.data.remote
 
 import cl.duoc.pichangapp.data.model.DeviceTokenRequest
-import cl.duoc.pichangapp.data.model.NotificationDto
+import cl.duoc.pichangapp.data.model.NotificationPageResponse
 import cl.duoc.pichangapp.data.model.NotificationSendRequest
 import retrofit2.Response
 import retrofit2.http.Body
@@ -17,13 +17,10 @@ interface NotificationApi {
     @POST("api/v1/notifications/send")
     suspend fun sendNotification(@Body request: NotificationSendRequest): Response<Void>
 
-    // Note: The backend might return a page object or a list. Let's assume it returns a Page object and we might need to map it. 
-    // If it returns a Page, we will need a Page wrapper. Assuming it returns List<NotificationDto> for simplicity, 
-    // or we'll wrap it if needed.
     @GET("api/v1/notifications/{id}")
     suspend fun getNotifications(
         @Path("id") userId: String,
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10
-    ): Response<List<NotificationDto>> // Adjust this if the backend returns a Paged format like { "content": [...] }
+        @Query("size") size: Int = 20
+    ): Response<NotificationPageResponse>
 }

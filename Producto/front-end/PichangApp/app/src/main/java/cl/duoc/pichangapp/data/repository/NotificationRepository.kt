@@ -19,7 +19,8 @@ class NotificationRepository @Inject constructor(
         try {
             val response = notificationApi.getNotifications(userId = userId, page = 0, size = 20)
             if (response.isSuccessful && response.body() != null) {
-                emit(Result.Success(response.body()!!))
+                // Extraer la lista "content" del objeto paginado de Spring Data
+                emit(Result.Success(response.body()!!.content))
             } else {
                 emit(Result.Error("Error al obtener notificaciones: ${response.code()}"))
             }
