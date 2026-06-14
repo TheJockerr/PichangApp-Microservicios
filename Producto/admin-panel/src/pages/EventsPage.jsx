@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { CalendarDays, Trash2 } from 'lucide-react'
 import { getEvents, deleteEvent } from '../api/eventsApi'
 import ConfirmModal from '../components/ConfirmModal'
+import SportBadge from '../components/SportBadge'
+import StatusBadge from '../components/StatusBadge'
+import UserAvatar from '../components/UserAvatar'
+import LoadingSpinner from '../components/LoadingSpinner'
+import EmptyState from '../components/EmptyState'
 
 const STATUS_LABELS = {
-  ACTIVE: 'Activo',
-  FINISHED: 'Finalizado',
-  CANCELLED: 'Cancelado',
+  ACTIVE: 'Activos',
+  FINISHED: 'Finalizados',
+  CANCELLED: 'Cancelados',
 }
 
 export default function EventsPage() {
@@ -24,14 +30,29 @@ export default function EventsPage() {
     },
   })
 
-  const filtered = (events ?? []).filter((e) => filter === 'ALL' || e.status === filter)
+  const list = events ?? []
+  const counts = {
+    ALL: list.length,
+    ACTIVE: list.filter((e) => e.status === 'ACTIVE').length,
+    FINISHED: list.filter((e) => e.status === 'FINISHED').length,
+    CANCELLED: list.filter((e) => e.status === 'CANCELLED').length,
+  }
+  const filtered = list.filter((e) => filter === 'ALL' || e.status === filter)
 
   return (
     <div>
-      <h1 className="page-title">Eventos</h1>
-      <p className="page-subtitle">Gestión de todos los eventos</p>
+      <div className="hero-head hero-orange">
+        <div className="hero-head-text">
+          <div className="hero-title">Eventos</div>
+          <div className="hero-subtitle">Gestión de todos los eventos deportivos</div>
+        </div>
+        <div className="hero-counter">
+          <span className="hero-counter-num">{counts.ACTIVE}</span>
+          <span className="hero-counter-label">eventos<br />activos</span>
+        </div>
+      </div>
 
-      <div className="filter-bar">
+      <div className="filter-group" style={{ marginBottom: 'var(--space-lg)' }}>
         {['ALL', 'ACTIVE', 'FINISHED', 'CANCELLED'].map((s) => (
           <button
             key={s}
@@ -39,60 +60,37 @@ export default function EventsPage() {
             onClick={() => setFilter(s)}
           >
             {s === 'ALL' ? 'Todos' : STATUS_LABELS[s]}
+            <span className="chip-count">{counts[s]}</span>
           </button>
         ))}
       </div>
 
-      {isLoading && <p className="muted">Cargando eventos…</p>}
+      {isLoading && <LoadingSpinner label="Cargando eventos…" />}
       {isError && <div className="alert alert-error">No se pudieron cargar los eventos</div>}
 
       {!isLoading && !isError && (
-        <div className="table-wrapper">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Deporte</th>
-                <th>Organizador</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Jugadores</th>
-                <th className="col-actions">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((e) => (
-                <tr key={e.id}>
-                  <td>{e.name}</td>
-                  <td>{e.sport}</td>
-                  <td>{e.organizerEmail || '—'}</td>
-                  <td>{formatDate(e.eventDate)}</td>
-                  <td>
-                    <span className={`badge badge-${e.status?.toLowerCase()}`}>
-                      {STATUS_LABELS[e.status] || e.status}
-                    </span>
-                  </td>
-                  <td>{e.currentPlayers} / {e.maxPlayers}</td>
-                  <td className="col-actions">
-                    <button
-                      className="btn btn-danger btn-sm"
-                      disabled={e.status === 'CANCELLED'}
-                      title={e.status === 'CANCELLED' ? 'El evento ya está cancelado' : 'Eliminar'}
-                      onClick={() => setToDelete(e)}
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
+        <>
+          {filtered.length === 0 ? (
+            <div className="table-card">
+              <EmptyState
+                icon="📅"
+                title="Sin eventos"
+                message="No hay eventos para este filtro."
+              />
+            </div>
+          ) : (
+            <div className="events-grid">
+              {filtered.map((e, i) => (
+                <EventCard
+                  key={e.id}
+                  event={e}
+                  delay={Math.min(i * 0.05, 0.4)}
+                  onDelete={() => setToDelete(e)}
+                />
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="muted center">No hay eventos para este filtro.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       <ConfirmModal
@@ -112,10 +110,73 @@ export default function EventsPage() {
   )
 }
 
+function EventCard({ event, delay, onDelete }) {
+  const max = Number(event.maxPlayers) || 0
+  const cur = Number(event.currentPlayers) || 0
+  const pct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0
+  const full = max > 0 && cur >= max
+
+  return (
+    <article className="event-card animate-fade-in" style={{ animationDelay: `${delay}s` }}>
+      <button
+        className="btn-icon btn-icon-danger event-delete"
+        disabled={event.status === 'CANCELLED'}
+        title={event.status === 'CANCELLED' ? 'El evento ya está cancelado' : 'Eliminar'}
+        aria-label="Eliminar evento"
+        onClick={onDelete}
+      >
+        <Trash2 size={16} />
+      </button>
+
+      <div className="event-card-top">
+        <SportBadge sport={event.sport} />
+      </div>
+
+      <div className="event-card-name">{event.name}</div>
+
+      <div className="event-meta-row" style={{ gap: 12 }}>
+        <StatusBadge status={event.status} />
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          <CalendarDays size={15} /> {formatDate(event.eventDate)}
+        </span>
+      </div>
+
+      <div className="event-organizer">
+        <UserAvatar email={event.organizerEmail} name={event.organizerEmail || ''} size="sm" />
+        <div style={{ minWidth: 0 }}>
+          <div className="event-organizer-label">Organizador</div>
+          <div className="event-organizer-email">{event.organizerEmail || '—'}</div>
+        </div>
+      </div>
+
+      <div>
+        <div className="progress-head">
+          <span>Jugadores</span>
+          <span className="progress-count">
+            {cur} / {max}
+          </span>
+        </div>
+        <div className="progress-bar">
+          <div
+            className={`progress-fill ${full ? 'progress-fill-full' : ''}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function formatDate(value) {
   if (!value) return '—'
   try {
-    return new Date(value).toLocaleString('es-CL')
+    return new Date(value).toLocaleString('es-CL', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   } catch {
     return value
   }

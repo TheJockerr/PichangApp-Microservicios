@@ -1,0 +1,83 @@
+/* =====================================================================
+   PichangApp — Tokens de diseño (Design System)
+   Inspiración: Duolingo (gamificado) + Strava (deportivo)
+   Ver DESIGN.md para las brand guidelines completas.
+   ===================================================================== */
+:root {
+  /* ---------- Colores: verde (marca) ---------- */
+  --color-primary: #2e7d32;
+  --color-primary-light: #66bb6a;
+  --color-primary-dark: #1b5e20;
+
+  /* ---------- Colores: acento naranja ---------- */
+  --color-accent: #ff6f00;
+  --color-accent-light: #ffb300;
+  --color-accent-dark: #e65100;
+
+  /* ---------- Colores: azul (datos / estadística) ---------- */
+  --color-blue: #1565c0;
+  --color-blue-light: #42a5f5;
+  --color-blue-dark: #0d47a1;
+
+  /* ---------- Colores: morado (karma) ---------- */
+  --color-purple: #6a1b9a;
+  --color-purple-light: #ab47bc;
+
+  /* ---------- Colores: peligro ---------- */
+  --color-danger: #c62828;
+  --color-danger-light: #ef5350;
+  --color-danger-dark: #a31515;
+
+  /* ---------- Semánticos ---------- */
+  --color-success: #2e7d32;
+  --color-warning: #ff6f00;
+
+  /* ---------- Superficies ---------- */
+  --color-bg: #f8fbf8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f6f1;
+  --color-dark: #1a1a2e;
+  --color-dark-soft: #232342;
+
+  /* ---------- Texto ---------- */
+  --color-text: #2c3e50;
+  --color-text-muted: #78909c;
+  --color-border: #e6ede6;
+
+  /* ---------- Tipografía ---------- */
+  --font-heading: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  /* ---------- Espaciado ---------- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* ---------- Bordes redondeados ---------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ---------- Sombras suaves y coloridas ---------- */
+  --shadow-sm: 0 2px 8px rgba(46, 125, 50, 0.1);
+  --shadow-md: 0 4px 16px rgba(46, 125, 50, 0.15);
+  --shadow-lg: 0 8px 32px rgba(46, 125, 50, 0.2);
+  --shadow-accent: 0 4px 16px rgba(255, 111, 0, 0.3);
+  --shadow-blue: 0 4px 16px rgba(21, 101, 192, 0.3);
+  --shadow-purple: 0 4px 16px rgba(106, 27, 154, 0.3);
+  --shadow-danger: 0 4px 16px rgba(198, 40, 40, 0.3);
+  --shadow-card: 0 6px 24px rgba(26, 26, 46, 0.06);
+
+  /* ---------- Transiciones ---------- */
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---------- Layout ---------- */
+  --sidebar-width: 256px;
+  --topbar-height: 72px;
+}

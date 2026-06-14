@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Mail, Lock, Users, CalendarCheck, Trophy } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 
 export default function LoginPage() {
@@ -34,37 +35,94 @@ export default function LoginPage() {
 
   return (
     <div className="login-wrapper">
-      <form className="login-card" onSubmit={handleSubmit}>
-        <div className="login-logo">⚽</div>
-        <h1 className="login-title">PichangApp</h1>
-        <p className="login-subtitle">Panel de Administración</p>
+      {/* Lado izquierdo: hero de marca */}
+      <section className="login-hero">
+        <div className="login-hero-content animate-fade-up">
+          <img src="/logo.png" alt="PichangApp" className="login-hero-logo" />
+          <h1 className="login-hero-title">PichangApp</h1>
+          <p className="login-hero-slogan">Gestiona tu comunidad deportiva</p>
 
-        {error && <div className="alert alert-error">{error}</div>}
+          <div className="login-hero-features">
+            <div className="login-hero-feature">
+              <span className="login-hero-feature-icon">
+                <Users size={20} strokeWidth={2.4} />
+              </span>
+              Administra usuarios y su karma
+            </div>
+            <div className="login-hero-feature">
+              <span className="login-hero-feature-icon">
+                <CalendarCheck size={20} strokeWidth={2.4} />
+              </span>
+              Controla todos los eventos
+            </div>
+            <div className="login-hero-feature">
+              <span className="login-hero-feature-icon">
+                <Trophy size={20} strokeWidth={2.4} />
+              </span>
+              Impulsa el juego limpio
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <label className="field-label">Correo</label>
-        <input
-          type="email"
-          className="field-input"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-          placeholder="admin@pichangapp.cl"
-          required
-        />
+      {/* Lado derecho: formulario */}
+      <section className="login-panel">
+        <form className="login-card animate-fade-up" onSubmit={handleSubmit}>
+          <div className="login-card-mobile-brand">
+            <img
+              src="/logo.png"
+              alt="PichangApp"
+              className="login-hero-logo"
+              style={{ width: 84, height: 84, marginBottom: 12 }}
+            />
+            <h1 className="login-card-title" style={{ color: 'var(--color-primary)' }}>
+              PichangApp
+            </h1>
+          </div>
 
-        <label className="field-label">Contraseña</label>
-        <input
-          type="password"
-          className="field-input"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-        />
+          <h2 className="login-card-title">¡Bienvenido! 👋</h2>
+          <p className="login-card-subtitle">Ingresa con tu cuenta de administrador</p>
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? 'Ingresando…' : 'Ingresar'}
-        </button>
-      </form>
+          {error && <div className="alert alert-error">{error}</div>}
+
+          <div className="field">
+            <span className="field-label">Correo</span>
+            <label className="input-icon">
+              <Mail size={18} />
+              <input
+                type="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                placeholder="admin@pichangapp.cl"
+                required
+              />
+            </label>
+          </div>
+
+          <div className="field">
+            <span className="field-label">Contraseña</span>
+            <label className="input-icon">
+              <Lock size={18} />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-block btn-lg"
+            disabled={loading}
+            style={{ marginTop: 'var(--space-sm)' }}
+          >
+            {loading ? 'Ingresando…' : 'Ingresar'}
+          </button>
+        </form>
+      </section>
     </div>
   )
 }
