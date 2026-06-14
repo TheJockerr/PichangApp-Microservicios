@@ -70,7 +70,7 @@ foreach ($svc in $services) {
         $lines += "set `"$($kv.Key)=$($kv.Value)`""
     }
     $mvnwFull = Join-Path $svcDir "mvnw.cmd"
-    $lines += "call `"$mvnwFull`" spring-boot:run"
+    $lines += "call `"$mvnwFull`" spring-boot:run -Dmaven.compiler.useIncrementalCompilation=false"
     $lines | Set-Content -Path $cmdFile -Encoding ASCII
 
     Start-Process -FilePath "cmd.exe" `

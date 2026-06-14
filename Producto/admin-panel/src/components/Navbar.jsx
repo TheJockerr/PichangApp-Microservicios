@@ -1,5 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, Users, CalendarDays, LogOut } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import UserAvatar from './UserAvatar'
+
+const NAV_ITEMS = [
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/users', label: 'Usuarios', icon: Users },
+  { to: '/events', label: 'Eventos', icon: CalendarDays },
+]
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -13,7 +21,7 @@ export default function Navbar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <span className="sidebar-logo">⚽</span>
+        <img src="/logo.png" alt="PichangApp" className="sidebar-logo" />
         <div>
           <div className="sidebar-title">PichangApp</div>
           <div className="sidebar-subtitle">Administración</div>
@@ -21,21 +29,35 @@ export default function Navbar() {
       </div>
 
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" className="nav-item">
-          Dashboard
-        </NavLink>
-        <NavLink to="/users" className="nav-item">
-          Usuarios
-        </NavLink>
-        <NavLink to="/events" className="nav-item">
-          Eventos
-        </NavLink>
+        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}
+          >
+            <span className="nav-icon">
+              <Icon size={20} strokeWidth={2.4} />
+            </span>
+            <span className="nav-label">{label}</span>
+          </NavLink>
+        ))}
       </nav>
 
       <div className="sidebar-footer">
-        {adminEmail && <div className="sidebar-email" title={adminEmail}>{adminEmail}</div>}
-        <button className="btn btn-logout" onClick={handleLogout}>
-          Cerrar sesión
+        <div className="sidebar-user">
+          <UserAvatar name="Administrador" email={adminEmail} size="sm" />
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">Administrador</div>
+            {adminEmail && (
+              <div className="sidebar-email" title={adminEmail}>
+                {adminEmail}
+              </div>
+            )}
+          </div>
+        </div>
+        <button className="btn-logout" onClick={handleLogout}>
+          <LogOut size={18} strokeWidth={2.4} />
+          <span>Cerrar sesión</span>
         </button>
       </div>
     </aside>

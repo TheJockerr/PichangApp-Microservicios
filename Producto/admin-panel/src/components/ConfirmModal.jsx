@@ -1,6 +1,8 @@
+import { AlertTriangle } from 'lucide-react'
+
 /**
- * Modal de confirmación reutilizable.
- * Props: open, title, message, confirmText, onConfirm, onCancel, loading.
+ * Modal de confirmación reutilizable, con ícono y animación.
+ * Props: open, title, message, confirmText, cancelText, onConfirm, onCancel, loading.
  */
 export default function ConfirmModal({
   open,
@@ -17,6 +19,9 @@ export default function ConfirmModal({
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-icon">
+          <AlertTriangle size={32} strokeWidth={2.5} />
+        </div>
         <h3 className="modal-title">{title}</h3>
         <p className="modal-message">{message}</p>
         <div className="modal-actions">
