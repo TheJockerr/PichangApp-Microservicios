@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,13 +95,13 @@ class EventServiceTest {
         reg.setStatus("REGISTERED");
 
         when(eventRepository.findById(1)).thenReturn(Optional.of(event));
-        when(eventRegistrationRepository.findByEventId(1)).thenReturn(List.of(reg));
+        when(eventRegistrationRepository.findByEventIdAndStatusIn(eq(1), anyList())).thenReturn(List.of(reg));
 
         eventService.deleteEvent(1, 10);
 
         assertEquals("CANCELLED", event.getStatus());
         verify(karmaServiceClient, times(1)).registerCheckIn(20, 1);
-        verify(notificationServiceClient, times(1)).sendNotification(any());
+        verify(notificationServiceClient, times(1)).sendNotification(eq(20), any(), any(), any());
         verify(eventRepository, times(1)).save(event);
     }
 

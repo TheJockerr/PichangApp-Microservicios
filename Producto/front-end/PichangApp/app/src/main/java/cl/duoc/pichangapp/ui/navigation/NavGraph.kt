@@ -1,21 +1,34 @@
 package cl.duoc.pichangapp.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -29,21 +42,30 @@ import cl.duoc.pichangapp.ui.screens.home.HomeScreen
 import cl.duoc.pichangapp.ui.screens.karma.KarmaScreen
 import cl.duoc.pichangapp.ui.screens.notifications.NotificationsScreen
 import cl.duoc.pichangapp.ui.screens.profile.ProfileScreen
+import cl.duoc.pichangapp.ui.screens.profile.EditProfileScreen
+import cl.duoc.pichangapp.ui.screens.profile.ChangePasswordScreen
+import cl.duoc.pichangapp.ui.screens.profile.NotificationPreferencesScreen
+import cl.duoc.pichangapp.ui.screens.profile.AppearanceScreen
 import cl.duoc.pichangapp.ui.screens.splash.SplashScreen
 import cl.duoc.pichangapp.ui.screens.events.EventsScreen
 import cl.duoc.pichangapp.ui.screens.events.CreateEventScreen
 import cl.duoc.pichangapp.ui.screens.events.EventDetailScreen
 import cl.duoc.pichangapp.ui.screens.events.AttendanceScreen
 
-sealed class Screen(val route: String, val title: String? = null, val icon: ImageVector? = null) {
+sealed class Screen(
+    val route: String,
+    val title: String? = null,
+    val icon: ImageVector? = null,          // ícono relleno (seleccionado)
+    val iconOutlined: ImageVector? = null   // ícono outline (no seleccionado)
+) {
     object Splash : Screen("splash")
     object Login : Screen("login")
     object Register : Screen("register")
-    object Home : Screen("home", "Inicio", Icons.Filled.Home)
-    object Karma : Screen("karma", "Karma", Icons.Filled.Star)
-    object Notifications : Screen("notifications", "Notificaciones", Icons.Filled.Notifications)
-    object Profile : Screen("profile", "Perfil", Icons.Filled.Person)
-    object Events : Screen("events", "Eventos", Icons.Filled.Map)
+    object Home : Screen("home", "Inicio", Icons.Filled.Home, Icons.Outlined.Home)
+    object Karma : Screen("karma", "Karma", Icons.Filled.Star, Icons.Outlined.StarBorder)
+    object Notifications : Screen("notifications", "Avisos", Icons.Filled.Notifications, Icons.Outlined.Notifications)
+    object Profile : Screen("profile", "Perfil", Icons.Filled.Person, Icons.Outlined.Person)
+    object Events : Screen("events", "Eventos", Icons.Filled.Map, Icons.Outlined.Map)
 }
 
 val bottomNavItems = listOf(
@@ -63,21 +85,33 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
                     bottomNavItems.forEach { screen ->
+                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                         NavigationBarItem(
-                            icon = { screen.icon?.let { Icon(it, contentDescription = screen.title) } },
-                            label = { screen.title?.let { Text(it) } },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            selected = selected,
                             onClick = {
                                 navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
                                 }
-                            }
+                            },
+                            icon = {
+                                val img = if (selected) screen.icon else (screen.iconOutlined ?: screen.icon)
+                                img?.let { Icon(it, contentDescription = screen.title) }
+                            },
+                            label = { screen.title?.let { Text(it, style = MaterialTheme.typography.labelSmall) } },
+                            alwaysShowLabel = false,
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = Color.Transparent,
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedTextColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
                 }
@@ -87,7 +121,12 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
         NavHost(
             navController = navController,
             startDestination = Screen.Splash.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            // Transiciones sutiles: fade + slide ligero entre pantallas.
+            enterTransition = { fadeIn(tween(300)) + slideIntoContainer(SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(240)) },
+            popEnterTransition = { fadeIn(tween(300)) },
+            popExitTransition = { fadeOut(tween(240)) + slideOutOfContainer(SlideDirection.End, tween(300)) }
         ) {
             composable(Screen.Splash.route) {
                 SplashScreen(
@@ -165,12 +204,26 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             }
             composable(Screen.Profile.route) {
                 ProfileScreen(
+                    navController = navController,
                     onLogout = {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
                 )
+            }
+            // ── Sub-pantallas de perfil ─────────────────────────────────────
+            composable("edit-profile") {
+                EditProfileScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable("change-password") {
+                ChangePasswordScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable("notification-preferences") {
+                NotificationPreferencesScreen(onNavigateBack = { navController.popBackStack() })
+            }
+            composable("appearance") {
+                AppearanceScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
     }

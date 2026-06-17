@@ -1,10 +1,10 @@
 package cl.duoc.pichangapp.ui.screens.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -60,11 +61,7 @@ fun RegisterScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                PichangSnackbar(data)
-            }
-        }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) { PichangSnackbar(it) } }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -73,13 +70,20 @@ fun RegisterScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Hero section ──────────────────────────────────────────────
+            // ── Hero con glow de marca ────────────────────────────────────
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(vertical = 40.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
+                                MaterialTheme.colorScheme.background
+                            )
+                        )
+                    )
+                    .padding(top = 64.dp, bottom = 36.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -88,150 +92,113 @@ fun RegisterScreen(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(72.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
                     ) {
-                        Text(text = "⚽", fontSize = 32.sp)
+                        Text(text = "⚽", fontSize = 34.sp)
                     }
                     Text(
-                        text = "Crear Cuenta",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold
+                        text = "Crear cuenta",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Únete y empieza a jugar",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // ── Form card ─────────────────────────────────────────────────
-            Card(
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(0.dp),
-                modifier = Modifier.fillMaxWidth()
+            // ── Formulario (plano) ────────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(
+                PichangTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it; nombreError = false },
+                    label = "Nombre",
+                    isError = nombreError,
+                    errorMessage = "Mínimo 2 caracteres",
+                    leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                PichangTextField(
+                    value = apellido,
+                    onValueChange = { apellido = it; apellidoError = false },
+                    label = "Apellido",
+                    isError = apellidoError,
+                    errorMessage = "Mínimo 2 caracteres",
+                    leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                PichangTextField(
+                    value = correo,
+                    onValueChange = { correo = it; emailError = false },
+                    label = "Correo electrónico",
+                    isError = emailError,
+                    errorMessage = "Ingresa un correo válido",
+                    leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                PichangTextField(
+                    value = password,
+                    onValueChange = { password = it; passwordError = false },
+                    label = "Contraseña",
+                    isError = passwordError,
+                    errorMessage = "Mínimo 6 caracteres",
+                    leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
+                            )
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                PichangButton(
+                    onClick = {
+                        var valid = true
+                        if (nombre.length < 2) { nombreError = true; valid = false }
+                        if (apellido.length < 2) { apellidoError = true; valid = false }
+                        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) { emailError = true; valid = false }
+                        if (password.length < 6) { passwordError = true; valid = false }
+                        if (valid) viewModel.register(correo, password, nombre, apellido)
+                    },
+                    text = "Registrarse",
+                    isLoading = state is RegisterState.Loading
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 28.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(top = 8.dp)
                 ) {
-                    // Progreso (Paso 1 -> Registro)
-                    LinearProgressIndicator(
-                        progress = { 0.5f },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    Text(
+                        text = "¿Ya tienes cuenta? ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Paso 1: Datos",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.End)
+                        text = "Inicia sesión",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable(onClick = onNavigateBack)
                     )
-
-                    PichangTextField(
-                        value = nombre,
-                        onValueChange = {
-                            nombre = it
-                            nombreError = false
-                        },
-                        label = "Nombre",
-                        isError = nombreError,
-                        errorMessage = "Mínimo 2 caracteres",
-                        leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    PichangTextField(
-                        value = apellido,
-                        onValueChange = {
-                            apellido = it
-                            apellidoError = false
-                        },
-                        label = "Apellido",
-                        isError = apellidoError,
-                        errorMessage = "Mínimo 2 caracteres",
-                        leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    PichangTextField(
-                        value = correo,
-                        onValueChange = {
-                            correo = it
-                            emailError = false
-                        },
-                        label = "Correo electrónico",
-                        isError = emailError,
-                        errorMessage = "Ingresa un correo válido",
-                        leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    PichangTextField(
-                        value = password,
-                        onValueChange = {
-                            password = it
-                            passwordError = false
-                        },
-                        label = "Contraseña",
-                        isError = passwordError,
-                        errorMessage = "Mínimo 6 caracteres",
-                        leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                                    contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
-                                )
-                            }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    val isLoading = state is RegisterState.Loading
-                    PichangButton(
-                        onClick = {
-                            var valid = true
-                            if (nombre.length < 2) { nombreError = true; valid = false }
-                            if (apellido.length < 2) { apellidoError = true; valid = false }
-                            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) { emailError = true; valid = false }
-                            if (password.length < 6) { passwordError = true; valid = false }
-
-                            if (valid) {
-                                viewModel.register(correo, password, nombre, apellido)
-                            }
-                        },
-                        text = "Registrarse",
-                        isLoading = isLoading
-                    )
-
-                    OutlinedButton(
-                        onClick = onNavigateBack,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp)
-                    ) {
-                        Text(
-                            text = "Ya tengo cuenta. Iniciar Sesión",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
                 }
             }
         }

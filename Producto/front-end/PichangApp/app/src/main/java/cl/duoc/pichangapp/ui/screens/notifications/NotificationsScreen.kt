@@ -34,7 +34,6 @@ import cl.duoc.pichangapp.ui.components.PichangCard
 import cl.duoc.pichangapp.ui.components.LoadingScreen
 import cl.duoc.pichangapp.ui.components.EmptyState
 import cl.duoc.pichangapp.ui.theme.KarmaExcellent
-import cl.duoc.pichangapp.ui.theme.KarmaLow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,8 +81,8 @@ fun NotificationsScreen(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     "Notificaciones",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -94,7 +93,7 @@ fun NotificationsScreen(
             } else if (state.error != null && state.notifications.isEmpty()) {
                 EmptyState(emoji = "⚠️", title = "Error", message = state.error!!)
             } else if (state.notifications.isEmpty()) {
-                EmptyState(emoji = "s📭", title = "Bandeja vacía", message = "No tienes nuevas notificaciones.")
+                EmptyState(emoji = "📭", title = "Bandeja vacía", message = "No tienes nuevas notificaciones.")
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

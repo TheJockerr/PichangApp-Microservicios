@@ -3,10 +3,10 @@ package cl.duoc.pichangapp.ui.screens.auth
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,17 +54,13 @@ fun LoginScreen(
 
     fun shake() {
         scope.launch {
-            for (i in 0..5) {
-                shakeAnim.animateTo(if (i % 2 == 0) 10f else -10f, animationSpec = tween(50))
-            }
+            for (i in 0..5) shakeAnim.animateTo(if (i % 2 == 0) 10f else -10f, tween(50))
             shakeAnim.animateTo(0f)
         }
     }
 
     LaunchedEffect(mensaje) {
-        if (!mensaje.isNullOrBlank()) {
-            snackbarHostState.showSnackbar(mensaje)
-        }
+        if (!mensaje.isNullOrBlank()) snackbarHostState.showSnackbar(mensaje)
     }
 
     LaunchedEffect(state) {
@@ -77,11 +74,7 @@ fun LoginScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                PichangSnackbar(data)
-            }
-        }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) { PichangSnackbar(it) } }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -91,13 +84,20 @@ fun LoginScreen(
                 .graphicsLayer(translationX = shakeAnim.value),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Hero section ──────────────────────────────────────────────
+            // ── Hero con glow de marca (radial superior) ──────────────────
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(vertical = 48.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
+                                MaterialTheme.colorScheme.background
+                            )
+                        )
+                    )
+                    .padding(top = 72.dp, bottom = 40.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -106,139 +106,105 @@ fun LoginScreen(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(80.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
                     ) {
-                        Text(text = "⚽", fontSize = 36.sp)
+                        Text(text = "⚽", fontSize = 40.sp)
                     }
                     Text(
                         text = "PichangApp",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Encuentra partidos cerca de ti",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // ── Form card ─────────────────────────────────────────────────
-            Card(
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(0.dp),
-                modifier = Modifier.fillMaxWidth()
+            // ── Formulario (plano, sobre el fondo) ────────────────────────
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
+                Text(
+                    text = "Iniciar sesión",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+
+                PichangTextField(
+                    value = correo,
+                    onValueChange = { correo = it; emailError = false },
+                    label = "Correo electrónico",
+                    isError = emailError,
+                    errorMessage = "Ingresa un correo válido",
+                    leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                PichangTextField(
+                    value = password,
+                    onValueChange = { password = it; passwordError = false },
+                    label = "Contraseña",
+                    isError = passwordError,
+                    errorMessage = "Debe tener al menos 6 caracteres",
+                    leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
+                            )
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                PichangButton(
+                    onClick = {
+                        var valid = true
+                        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+                            emailError = true; valid = false
+                        }
+                        if (password.length < 6) {
+                            passwordError = true; valid = false
+                        }
+                        if (valid) viewModel.login(correo, password) else shake()
+                    },
+                    text = "Iniciar sesión",
+                    isLoading = state is LoginState.Loading
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .padding(top = 8.dp)
                 ) {
                     Text(
-                        text = "Iniciar Sesión",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Ingresa tus credenciales para continuar",
+                        text = "¿No tienes cuenta? ",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    PichangTextField(
-                        value = correo,
-                        onValueChange = {
-                            correo = it
-                            emailError = false
-                        },
-                        label = "Correo electrónico",
-                        isError = emailError,
-                        errorMessage = "Ingresa un correo válido",
-                        leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        modifier = Modifier.fillMaxWidth()
+                    Text(
+                        text = "Regístrate",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable(onClick = onNavigateToRegister)
                     )
-
-                    PichangTextField(
-                        value = password,
-                        onValueChange = {
-                            password = it
-                            passwordError = false
-                        },
-                        label = "Contraseña",
-                        isError = passwordError,
-                        errorMessage = "Debe tener al menos 6 caracteres",
-                        leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                                    contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
-                                )
-                            }
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    val isLoading = state is LoginState.Loading
-                    PichangButton(
-                        onClick = {
-                            var valid = true
-                            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
-                                emailError = true
-                                valid = false
-                            }
-                            if (password.length < 6) {
-                                passwordError = true
-                                valid = false
-                            }
-
-                            if (valid) {
-                                viewModel.login(correo, password)
-                            } else {
-                                shake()
-                            }
-                        },
-                        text = "Iniciar Sesión",
-                        isLoading = isLoading
-                    )
-
-                    // ── Divider "o" ───────────────────────────────────────
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        HorizontalDivider(modifier = Modifier.weight(1f))
-                        Text(
-                            text = "o",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        HorizontalDivider(modifier = Modifier.weight(1f))
-                    }
-
-                    OutlinedButton(
-                        onClick = onNavigateToRegister,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp)
-                    ) {
-                        Text(
-                            text = "¿No tienes cuenta? Regístrate",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
                 }
             }
         }

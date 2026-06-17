@@ -13,7 +13,12 @@ import cl.duoc.pichangapp.ui.theme.PichangAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import cl.duoc.pichangapp.core.util.SessionManager
+import cl.duoc.pichangapp.ui.theme.ThemeManager
+import cl.duoc.pichangapp.ui.theme.ThemeMode
 import javax.inject.Inject
 import cl.duoc.pichangapp.ui.navigation.Screen
 import androidx.navigation.compose.rememberNavController
@@ -24,12 +29,23 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var sessionManager: SessionManager
 
+    @Inject
+    lateinit var themeManager: ThemeManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            
+
+            // Preferencia de tema persistida (Sistema / Claro / Oscuro).
+            val themeMode by themeManager.themeMode.collectAsState()
+            val darkTheme = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT  -> false
+                ThemeMode.DARK   -> true
+            }
+
             LaunchedEffect(Unit) {
                 sessionManager.logoutEvent.collect {
                     navController.navigate(Screen.Login.route) {
@@ -38,7 +54,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            PichangAppTheme {
+            PichangAppTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

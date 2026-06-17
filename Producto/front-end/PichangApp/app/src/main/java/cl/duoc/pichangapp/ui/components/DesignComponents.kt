@@ -58,6 +58,14 @@ fun sportEmoji(sport: String): String {
     }
 }
 
+/** Color de acento según la categoría de Karma (excelente/bueno/regular/bajo). */
+fun karmaColor(categoria: String): Color = when (categoria.lowercase().trim()) {
+    "excelente", "oro"   -> cl.duoc.pichangapp.ui.theme.KarmaExcellent
+    "bueno", "plata"     -> cl.duoc.pichangapp.ui.theme.KarmaGood
+    "regular", "bronce"  -> cl.duoc.pichangapp.ui.theme.KarmaRegular
+    else                 -> cl.duoc.pichangapp.ui.theme.KarmaLow
+}
+
 // ─── SportChip ────────────────────────────────────────────────────────────────
 @Composable
 fun SportChip(
@@ -65,19 +73,13 @@ fun SportChip(
     modifier: Modifier = Modifier,
     color   : Color    = sportColor(sport)
 ) {
-    Surface(
-        shape    = RoundedCornerShape(20.dp),
-        color    = color.copy(alpha = 0.12f),
-        modifier = modifier
-    ) {
-        Text(
-            text       = "${sportEmoji(sport)} $sport",
-            style      = MaterialTheme.typography.labelSmall,
-            color      = color,
-            fontWeight = FontWeight.SemiBold,
-            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
+    // Unificado sobre CategoryChip para consistencia con el nuevo sistema.
+    CategoryChip(
+        label        = sport,
+        modifier     = modifier,
+        color        = color,
+        leadingEmoji = sportEmoji(sport)
+    )
 }
 
 // ─── StatusChip (texto libre: estado del evento, etc.) ────────────────────────
@@ -146,20 +148,8 @@ fun AvatarCircle(
     modifier: Modifier = Modifier,
     size    : Dp       = 40.dp
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Text(
-            text       = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-            style      = MaterialTheme.typography.labelMedium,
-            color      = MaterialTheme.colorScheme.onPrimaryContainer,
-            fontWeight = FontWeight.Bold
-        )
-    }
+    // Delegado al nuevo Avatar (iniciales con color por hash, soporte de foto).
+    Avatar(name = name, modifier = modifier, size = size)
 }
 
 // ─── ErrorScreen ──────────────────────────────────────────────────────────────

@@ -8,9 +8,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
+/**
+ * Campo de texto filled, sin bordes visibles: fondo `surfaceVariant` y solo cambio
+ * de color (label / cursor) al enfocar. Estilo input de Spotify.
+ */
 @Composable
 fun PichangTextField(
     value: String,
@@ -28,7 +33,7 @@ fun PichangTextField(
     readOnly: Boolean = false
 ) {
     Column(modifier = modifier) {
-        OutlinedTextField(
+        TextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
@@ -41,7 +46,19 @@ fun PichangTextField(
             keyboardActions = keyboardActions,
             singleLine = singleLine,
             readOnly = readOnly,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor   = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContainerColor  = MaterialTheme.colorScheme.surfaceVariant,
+                errorContainerColor     = MaterialTheme.colorScheme.surfaceVariant,
+                focusedIndicatorColor   = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor  = Color.Transparent,
+                errorIndicatorColor     = Color.Transparent,
+                focusedLabelColor       = MaterialTheme.colorScheme.primary,
+                cursorColor             = MaterialTheme.colorScheme.primary
+            )
         )
         if (isError && errorMessage != null) {
             Text(

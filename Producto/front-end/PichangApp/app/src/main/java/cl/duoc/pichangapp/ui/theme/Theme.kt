@@ -2,7 +2,10 @@ package cl.duoc.pichangapp.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -10,6 +13,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -72,19 +76,52 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 /**
+ * Cruza suavemente cada rol de color cuando cambia el esquema (dark ↔ light),
+ * para que el cambio de tema se anime en vez de ser un corte abrupto.
+ */
+@Composable
+private fun ColorScheme.animated(): ColorScheme {
+    val spec = tween<Color>(durationMillis = 420)
+    return copy(
+        primary            = animateColorAsState(primary, spec, label = "primary").value,
+        onPrimary          = animateColorAsState(onPrimary, spec, label = "onPrimary").value,
+        primaryContainer   = animateColorAsState(primaryContainer, spec, label = "primaryContainer").value,
+        onPrimaryContainer = animateColorAsState(onPrimaryContainer, spec, label = "onPrimaryContainer").value,
+        secondary          = animateColorAsState(secondary, spec, label = "secondary").value,
+        onSecondary        = animateColorAsState(onSecondary, spec, label = "onSecondary").value,
+        secondaryContainer = animateColorAsState(secondaryContainer, spec, label = "secondaryContainer").value,
+        tertiary           = animateColorAsState(tertiary, spec, label = "tertiary").value,
+        onTertiary         = animateColorAsState(onTertiary, spec, label = "onTertiary").value,
+        tertiaryContainer  = animateColorAsState(tertiaryContainer, spec, label = "tertiaryContainer").value,
+        background         = animateColorAsState(background, spec, label = "background").value,
+        onBackground       = animateColorAsState(onBackground, spec, label = "onBackground").value,
+        surface            = animateColorAsState(surface, spec, label = "surface").value,
+        onSurface          = animateColorAsState(onSurface, spec, label = "onSurface").value,
+        surfaceVariant     = animateColorAsState(surfaceVariant, spec, label = "surfaceVariant").value,
+        onSurfaceVariant   = animateColorAsState(onSurfaceVariant, spec, label = "onSurfaceVariant").value,
+        outline            = animateColorAsState(outline, spec, label = "outline").value,
+        outlineVariant     = animateColorAsState(outlineVariant, spec, label = "outlineVariant").value,
+        error              = animateColorAsState(error, spec, label = "error").value
+    )
+}
+
+/**
  * Tema principal de PichangApp.
  *
- * @param darkTheme      Forzar dark mode (default: sigue el sistema)
- * @param dynamicColor   Color dinámico de Android 12+ (Material You).
- *                       En false por defecto para respetar la identidad de marca (azul Pichang).
+ * @param darkTheme    Forzar dark mode. Por defecto sigue al sistema, pero el
+ *                     `ThemeManager` impone DARK como predeterminado de la app.
+ * @param dynamicColor Color dinámico de Android 12+ (Material You). En `false` por
+ *                     defecto para respetar la identidad de marca (verde Pichang).
+ * @param animate      Animar el cambio de esquema de color (dark ↔ light).
  */
 @Composable
 fun PichangAppTheme(
     darkTheme   : Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    animate     : Boolean = true,
     content     : @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val baseScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -93,7 +130,9 @@ fun PichangAppTheme(
         else      -> LightColorScheme
     }
 
-    // Sincroniza color de status bar con el tema
+    val colorScheme = if (animate) baseScheme.animated() else baseScheme
+
+    // Sincroniza color de status bar con el tema activo.
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -23,13 +22,13 @@ fun PichangSnackbar(
 
     val containerColor = when {
         isError -> MaterialTheme.colorScheme.errorContainer
-        isSuccess -> Color(0xFF2E7D32) // EmeraldPrimary
+        isSuccess -> MaterialTheme.colorScheme.primaryContainer
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val contentColor = when {
         isError -> MaterialTheme.colorScheme.onErrorContainer
-        isSuccess -> Color.White
+        isSuccess -> MaterialTheme.colorScheme.onPrimaryContainer
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 

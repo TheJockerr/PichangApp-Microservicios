@@ -252,8 +252,8 @@ fun AttendanceRow(
                 },
                 enabled = isActionEnabled,
                 colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = Color(0xFF2E7D32),
-                    containerColor = Color(0xFF2E7D32).copy(alpha = 0.1f)
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 )
             ) {
                 Icon(Icons.Filled.Check, contentDescription = "Asistió")
