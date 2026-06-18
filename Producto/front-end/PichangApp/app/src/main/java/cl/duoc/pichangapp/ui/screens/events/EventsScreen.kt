@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +33,10 @@ import androidx.navigation.NavController
 import cl.duoc.pichangapp.ui.components.PichangCard
 import cl.duoc.pichangapp.ui.components.EmptyState
 import cl.duoc.pichangapp.ui.components.LoadingScreen
+import cl.duoc.pichangapp.ui.components.SportChip
+import cl.duoc.pichangapp.ui.components.StatusChip
+import cl.duoc.pichangapp.ui.components.SlotIndicator
+import cl.duoc.pichangapp.ui.components.sportColor
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.*
 
@@ -218,94 +224,111 @@ fun MisEventosTab(myEvents: List<cl.duoc.pichangapp.data.model.EventDto>, organi
 
 @Composable
 fun EventCard(event: cl.duoc.pichangapp.data.model.EventDto, onClick: () -> Unit) {
-    val sportEmoji = when (event.sport.lowercase()) {
-        "fútbol" -> "⚽"
-        "básquetbol" -> "🏀"
-        "tenis" -> "🎾"
-        "vóleibol" -> "🏐"
-        else -> "🏅"
-    }
+    val accent = sportColor(event.sport)
 
-    val sportColor = when (event.sport.lowercase()) {
-        "fútbol" -> Color(0xFF2E7D32)
-        "básquetbol" -> Color(0xFFE65100)
-        "tenis" -> Color(0xFFC0CA33)
-        "vóleibol" -> Color(0xFF0288D1)
-        else -> MaterialTheme.colorScheme.primary
-    }
-
-    PichangCard(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Sport Icon
+        Column {
+            // ── Franja de color del deporte ───────────────────────────────
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(sportColor.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(accent)
+            )
+
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(sportEmoji, fontSize = 32.sp)
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Box(
-                        modifier = Modifier.background(sportColor, RoundedCornerShape(12.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(event.sport.uppercase(), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    }
-                    if (event.distanceKm != null) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                text = String.format("%.1f km", event.distanceKm),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
+                // ── Header: deporte + distancia ───────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SportChip(sport = event.sport, color = accent)
+                    event.distanceKm?.let { km ->
+                        Text(
+                            text = String.format("%.1f km", km),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(event.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(event.eventDate, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(event.locationName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                LinearProgressIndicator(
-                    progress = if (event.maxPlayers > 0) event.currentPlayers.toFloat() / event.maxPlayers else 0f,
-                    modifier = Modifier.fillMaxWidth().height(6.dp),
-                    color = sportColor,
-                    trackColor = sportColor.copy(alpha = 0.2f)
-                )
+
+                // ── Título ────────────────────────────────────────────────
                 Text(
-                    text = "${event.currentPlayers}/${event.maxPlayers} Jugadores",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
+                    text = event.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
+
+                // ── Fecha ─────────────────────────────────────────────────
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        Icons.Rounded.Schedule,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = event.eventDate,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // ── Ubicación ─────────────────────────────────────────────
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        Icons.Rounded.Place,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = event.locationName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    thickness = 0.5.dp
+                )
+
+                // ── Footer: estado + cupos ────────────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    StatusChip(text = event.status)
+                    SlotIndicator(
+                        filled = event.currentPlayers,
+                        total = event.maxPlayers,
+                        color = accent
+                    )
+                }
             }
         }
     }

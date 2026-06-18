@@ -1,33 +1,33 @@
 package cl.duoc.pichangapp.ui.screens.auth
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cl.duoc.pichangapp.ui.components.PichangButton
-import cl.duoc.pichangapp.ui.components.PichangCard
 import cl.duoc.pichangapp.ui.components.PichangSnackbar
 import cl.duoc.pichangapp.ui.components.PichangTextField
-import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -46,9 +46,9 @@ fun RegisterScreen(
     var apellidoError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(state) {
         if (state is RegisterState.Success) {
@@ -59,62 +59,88 @@ fun RegisterScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 PichangSnackbar(data)
             }
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            PichangCard(
+            // ── Hero section ──────────────────────────────────────────────
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(vertical = 40.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f))
+                    ) {
+                        Text(text = "⚽", fontSize = 32.sp)
+                    }
+                    Text(
+                        text = "Crear Cuenta",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Únete y empieza a jugar",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                    )
+                }
+            }
+
+            // ── Form card ─────────────────────────────────────────────────
+            Card(
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(0.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 28.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = "Crear Cuenta",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Progress Indicator (Step 1 -> Register)
+                    // Progreso (Paso 1 -> Registro)
                     LinearProgressIndicator(
-                        progress = 0.5f,
-                        modifier = Modifier.fillMaxWidth().height(8.dp),
+                        progress = { 0.5f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                     Text(
                         text = "Paso 1: Datos",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.align(Alignment.End).padding(top = 4.dp, bottom = 16.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.align(Alignment.End)
                     )
 
                     PichangTextField(
                         value = nombre,
-                        onValueChange = { 
+                        onValueChange = {
                             nombre = it
                             nombreError = false
                         },
@@ -125,11 +151,9 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
                     PichangTextField(
                         value = apellido,
-                        onValueChange = { 
+                        onValueChange = {
                             apellido = it
                             apellidoError = false
                         },
@@ -140,11 +164,9 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
                     PichangTextField(
                         value = correo,
-                        onValueChange = { 
+                        onValueChange = {
                             correo = it
                             emailError = false
                         },
@@ -156,11 +178,9 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
                     PichangTextField(
                         value = password,
-                        onValueChange = { 
+                        onValueChange = {
                             password = it
                             passwordError = false
                         },
@@ -168,12 +188,20 @@ fun RegisterScreen(
                         isError = passwordError,
                         errorMessage = "Mínimo 6 caracteres",
                         leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                    contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     val isLoading = state is RegisterState.Loading
                     PichangButton(
@@ -192,13 +220,16 @@ fun RegisterScreen(
                         isLoading = isLoading
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    TextButton(onClick = onNavigateBack) {
+                    OutlinedButton(
+                        onClick = onNavigateBack,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    ) {
                         Text(
                             text = "Ya tengo cuenta. Iniciar Sesión",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.labelLarge
                         )
                     }
                 }
