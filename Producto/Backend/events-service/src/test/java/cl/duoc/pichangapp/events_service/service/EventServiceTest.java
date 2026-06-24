@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +39,9 @@ class EventServiceTest {
     @Mock
     private NotificationServiceClient notificationServiceClient;
 
+    @Mock
+    private UsersServiceClient usersServiceClient;
+
     @InjectMocks
     private EventService eventService;
 
@@ -52,7 +56,7 @@ class EventServiceTest {
         event.setId(1);
         event.setOrganizerId(10);
         event.setName("Pichanga Test");
-        event.setStatus("ACTIVE");
+        event.setStatus("ACTIVO");
         event.setMaxPlayers(10);
         event.setCurrentPlayers(0);
         event.setEventDate(LocalDateTime.now().plusDays(1));
@@ -72,7 +76,19 @@ class EventServiceTest {
 
         assertNotNull(response);
         assertEquals("Pichanga Test", response.getName());
-        assertEquals("ACTIVE", response.getStatus());
+        assertEquals("ACTIVO", response.getStatus());
+    }
+
+    @Test
+    void createEvent_DuplicateDetected_ThrowsException() {
+        CreateEventRequest request = new CreateEventRequest();
+        request.setName("Pichanga Test");
+
+        when(eventRepository.existsByOrganizerIdAndNameAndCreatedAtAfter(eq(10), eq("Pichanga Test"), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+        assertThrows(ResponseStatusException.class, () -> eventService.createEvent(request, 10));
+        verify(eventRepository, never()).save(any(Event.class));
     }
 
     @Test
@@ -99,9 +115,22 @@ class EventServiceTest {
 
         eventService.deleteEvent(1, 10);
 
-        assertEquals("CANCELLED", event.getStatus());
+        assertEquals("CANCELADO", event.getStatus());
         verify(karmaServiceClient, times(1)).registerCheckIn(20, 1);
         verify(notificationServiceClient, times(1)).sendNotification(eq(20), any(), any(), any());
+        verify(eventRepository, times(1)).save(event);
+    }
+
+    @Test
+    void deleteEventsByUser_CancelsAllActiveEvents() {
+        event.setStatus("ACTIVO");
+        when(eventRepository.findByOrganizerId(10)).thenReturn(List.of(event));
+        when(eventRegistrationRepository.findByEventIdAndStatusIn(eq(1), anyList())).thenReturn(List.of());
+        when(eventRegistrationRepository.findByUserId(10)).thenReturn(List.of());
+
+        eventService.deleteEventsByUser(10);
+
+        assertEquals("CANCELADO", event.getStatus());
         verify(eventRepository, times(1)).save(event);
     }
 
@@ -109,7 +138,7 @@ class EventServiceTest {
     void processFinishedEvents_MarksAbsence() {
         Event oldEvent = new Event();
         oldEvent.setId(1);
-        oldEvent.setStatus("ACTIVE");
+        oldEvent.setStatus("ACTIVO");
         oldEvent.setEventDate(LocalDateTime.now().minusHours(5));
 
         EventRegistration reg = new EventRegistration();
@@ -117,14 +146,14 @@ class EventServiceTest {
         reg.setEventId(1);
         reg.setStatus("REGISTERED");
 
-        when(eventRepository.findByStatusAndEventDateBefore(eq("ACTIVE"), any(LocalDateTime.class)))
+        when(eventRepository.findByStatusAndEventDateBefore(eq("ACTIVO"), any(LocalDateTime.class)))
                 .thenReturn(List.of(oldEvent));
         when(eventRegistrationRepository.findByEventId(1)).thenReturn(List.of(reg));
 
         eventScheduler = new EventScheduler(eventRepository, eventRegistrationRepository, karmaServiceClient);
         eventScheduler.processFinishedEvents();
 
-        assertEquals("FINISHED", oldEvent.getStatus());
+        assertEquals("FINALIZADO", oldEvent.getStatus());
         assertEquals("ABSENT", reg.getStatus());
         verify(karmaServiceClient, times(1)).registerAbsence(20, 1);
         verify(eventRepository, times(1)).save(oldEvent);

@@ -20,6 +20,16 @@ public class KarmaController {
         return ResponseEntity.ok(karmaService.getKarmaByUserId(userId));
     }
 
+    /**
+     * Elimina el karma de un usuario (uso interno: borrado de cuenta desde users-service).
+     * DELETE /api/v1/karma/{userId}
+     */
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteKarma(@PathVariable String userId) {
+        karmaService.deleteKarmaByUserId(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/check-in")
     public ResponseEntity<KarmaResponseDTO> registerCheckIn(@RequestBody CheckInEventDTO dto) {
         return ResponseEntity.ok(karmaService.processCheckIn(dto));

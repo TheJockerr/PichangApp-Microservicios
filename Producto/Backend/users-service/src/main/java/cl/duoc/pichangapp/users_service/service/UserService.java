@@ -41,6 +41,27 @@ public interface UserService {
     void changePassword(Integer id, ChangePasswordRequest request);
 
     /**
+     * Actualiza la visibilidad del historial de karma. Devuelve el estado nuevo.
+     */
+    boolean setHistorialVisible(Integer id, boolean visible);
+
+    /**
+     * Busca usuarios por nombre o apellido y devuelve sus perfiles públicos.
+     */
+    List<PerfilPublicoDTO> buscarUsuarios(String texto);
+
+    /**
+     * Obtiene el perfil público de un usuario a partir de su correo (uso interno).
+     */
+    PerfilPublicoDTO getPerfilPublicoByCorreo(String correo);
+
+    /**
+     * Elimina la cuenta propia del usuario y compensa en los demás servicios
+     * (cancela eventos, borra karma y notificaciones).
+     */
+    void eliminarCuenta(Integer id);
+
+    /**
      * Habilita la cuenta del usuario (por ejemplo tras verificación por email).
      */
     void enableUser(Integer id);

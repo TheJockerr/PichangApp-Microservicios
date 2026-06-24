@@ -19,4 +19,5 @@ public class EventResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime finishedAt;
     private Double distanceKm; // Added for distance calculations
+    private String nombreCreador; // Nombre + apellido del organizador (no se expone el correo)
 }

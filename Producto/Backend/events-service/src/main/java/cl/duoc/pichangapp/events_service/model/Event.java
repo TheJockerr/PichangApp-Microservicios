@@ -24,7 +24,7 @@ public class Event {
     private String locationName;      // nombre legible del lugar
     private Integer maxPlayers;       // máximo de jugadores
     private Integer currentPlayers;   // jugadores inscritos actualmente
-    private String status;            // ACTIVE, FINISHED, CANCELLED
+    private String status;            // ACTIVO, FINALIZADO, CANCELADO
     private LocalDateTime createdAt;
     private LocalDateTime finishedAt; // cuando se marca como finalizado
 }

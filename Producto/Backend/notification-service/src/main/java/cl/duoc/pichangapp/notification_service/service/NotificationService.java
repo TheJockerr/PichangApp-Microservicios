@@ -148,6 +148,16 @@ public class NotificationService {
                 .ifPresent(deviceTokenRepository::delete);
     }
 
+    /**
+     * Elimina todo el historial de notificaciones de un usuario.
+     * Uso interno: borrado de cuenta desde users-service. Idempotente.
+     */
+    @Transactional
+    public void deleteNotificationsByUserId(String userId) {
+        long deleted = notificationRepository.deleteByUserId(userId);
+        log.info("Eliminadas {} notificaciones del usuario {}", deleted, userId);
+    }
+
     private NotificationType parseNotificationType(String type) {
         try {
             return NotificationType.valueOf(type);

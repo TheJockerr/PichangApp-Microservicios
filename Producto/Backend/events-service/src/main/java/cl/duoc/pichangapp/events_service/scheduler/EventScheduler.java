@@ -28,11 +28,11 @@ public class EventScheduler {
     public void processFinishedEvents() {
         log.info("Running job to find and finish old events");
         LocalDateTime fourHoursAgo = LocalDateTime.now().minusHours(4);
-        List<Event> oldEvents = eventRepository.findByStatusAndEventDateBefore("ACTIVE", fourHoursAgo);
+        List<Event> oldEvents = eventRepository.findByStatusAndEventDateBefore("ACTIVO", fourHoursAgo);
 
         for (Event event : oldEvents) {
             log.info("Auto-finishing event {}", event.getId());
-            event.setStatus("FINISHED");
+            event.setStatus("FINALIZADO");
             event.setFinishedAt(LocalDateTime.now());
             eventRepository.save(event);
 

@@ -9,4 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
     Page<Notification> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
+
+    /** Elimina todo el historial de notificaciones de un usuario. Devuelve cuántas se borraron. */
+    long deleteByUserId(String userId);
 }
