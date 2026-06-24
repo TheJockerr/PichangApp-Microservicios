@@ -48,4 +48,9 @@ public class User {
 
     @Column
     private java.time.LocalDateTime verificationCodeExpiry;
+
+    // Controla si el historial de karma del usuario es visible en su perfil público.
+    // columnDefinition con default para no romper filas existentes al agregar la columna.
+    @Column(nullable = false, columnDefinition = "boolean not null default true")
+    private Boolean historialVisible = true;
 }

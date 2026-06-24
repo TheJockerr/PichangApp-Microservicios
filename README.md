@@ -33,31 +33,48 @@ El diferencial es el **Sistema de Karma**: algoritmo de reputación que penaliza
 ## Arquitectura de microservicios
 
 ```
-┌─────────────────────────────────────────────┐
-│          Admin Panel (React/Vite)           │
-│       Vercel / localhost:5173               │
-└────────────────────┬────────────────────────┘
-                     │ HTTP (JWT Bearer)
-┌────────────────────▼────────────────────────┐
-│         API Gateway — puerto 8080           │
-│   Validación JWT · Enrutamiento · CORS      │
-└──┬──────────┬──────────┬──────────┬─────────┘
-   │          │          │          │
-   ▼          ▼          ▼          ▼
-users-    karma-     events-  notification-
-service   service    service    service
-:8083      :8081      :8084      :8082
+┌─────────────────────┐      ┌─────────────────────┐
+│    App Android       │      │   Admin Panel        │
+│  (Kotlin/Compose)    │      │   (React/Vite)       │
+│  localhost / Play    │      │  Vercel / :5173      │
+└──────────┬──────────┘      └──────────┬───────────┘
+           │   HTTPS/REST               │  HTTPS/REST
+           └──────────────┬─────────────┘
+                          ▼
+          ┌────────────────────────────────┐
+          │    API Gateway — puerto 8080   │
+          │  Validación JWT · CORS · Rutas │
+          └──┬──────────┬──────────┬───┬──┘
+             │          │          │   │
+             ▼          ▼          ▼   ▼
+         users-    karma-     events-  notification-
+         service   service    service    service
+          :8083      :8081      :8084      :8082
+             │          │          │          │
+             └──────────┴──────────┴──────────┘
+                                │
+                   ┌────────────▼───────────┐
+                   │    MySQL (Railway)      │
+                   │  Una sola instancia    │
+                   │  · pichangapp          │
+                   │  · pichangapp_karma    │
+                   │  · pichangapp_events   │
+                   │  · pichangapp_         │
+                   │    notifications       │
+                   └────────────────────────┘
 ```
+
+> **Nota:** En producción (Railway) todos los microservicios se conectan a **una única instancia MySQL** por restricciones de presupuesto. Cada servicio opera sobre su propia base de datos lógica dentro de esa instancia.
 
 ### Responsabilidades de cada servicio
 
 | Servicio | Puerto | Base de datos | Función |
 |---|---|---|---|
 | `api-gateway` | 8080 | — | Validación JWT, enrutamiento, CORS, rate limiting |
-| `users-service` | 8083 | `pichangapp` | Auth (JWT), perfiles, rol ADMIN |
+| `users-service` | 8083 | `pichangapp` | Auth (JWT), perfiles, verificación email, rol ADMIN |
 | `karma_service` | 8081 | `pichangapp_karma` | Cálculo y ajuste de karma, historial |
-| `events-service` | 8084 | `pichangapp_events` | Creación, búsqueda y gestión de eventos |
-| `notification-service` | 8082 | `pichangapp_notifications` | Notificaciones push (FCM) y WebSockets |
+| `events-service` | 8084 | `pichangapp_events` | Creación, búsqueda geolocalizada y gestión de eventos |
+| `notification-service` | 8082 | `pichangapp_notifications` | Notificaciones push (FCM) y WebSockets en tiempo real |
 
 ---
 

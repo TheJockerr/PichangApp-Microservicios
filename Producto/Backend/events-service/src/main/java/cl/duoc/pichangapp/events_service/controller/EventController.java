@@ -101,4 +101,15 @@ public class EventController {
         Integer userId = getLoggedUserId();
         return ResponseEntity.ok(eventService.getOrganizingEvents(userId));
     }
+
+    /**
+     * Borrado de cuenta (uso interno desde users-service): cancela todos los eventos
+     * ACTIVO del usuario y elimina sus inscripciones.
+     * DELETE /api/v1/events/usuario/{userId}
+     */
+    @DeleteMapping("/usuario/{userId}")
+    public ResponseEntity<Void> deleteEventsByUser(@PathVariable Integer userId) {
+        eventService.deleteEventsByUser(userId);
+        return ResponseEntity.ok().build();
+    }
 }

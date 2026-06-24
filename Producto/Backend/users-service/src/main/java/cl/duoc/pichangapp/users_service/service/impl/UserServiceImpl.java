@@ -5,6 +5,7 @@ import cl.duoc.pichangapp.users_service.dto.JWTResponse;
 import cl.duoc.pichangapp.users_service.dto.LoginRequest;
 import cl.duoc.pichangapp.users_service.dto.RegisterRequest;
 import cl.duoc.pichangapp.users_service.dto.ResendCodeRequest;
+import cl.duoc.pichangapp.users_service.dto.PerfilPublicoDTO;
 import cl.duoc.pichangapp.users_service.dto.UpdateProfileRequest;
 import cl.duoc.pichangapp.users_service.dto.UserDTO;
 import cl.duoc.pichangapp.users_service.dto.VerifyCodeRequest;
@@ -12,6 +13,9 @@ import cl.duoc.pichangapp.users_service.model.User; // <- cambia si tu User est�
 import cl.duoc.pichangapp.users_service.repository.UserRepository;
 import cl.duoc.pichangapp.users_service.security.JwtProvider;
 import cl.duoc.pichangapp.users_service.service.EmailService;
+import cl.duoc.pichangapp.users_service.service.EventsServiceClient;
+import cl.duoc.pichangapp.users_service.service.KarmaServiceClient;
+import cl.duoc.pichangapp.users_service.service.NotificationServiceClient;
 import cl.duoc.pichangapp.users_service.service.UserService;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,15 +43,24 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final EmailService emailService;
+    private final KarmaServiceClient karmaServiceClient;
+    private final EventsServiceClient eventsServiceClient;
+    private final NotificationServiceClient notificationServiceClient;
 
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtProvider jwtProvider,
-                           EmailService emailService) {
+                           EmailService emailService,
+                           KarmaServiceClient karmaServiceClient,
+                           EventsServiceClient eventsServiceClient,
+                           NotificationServiceClient notificationServiceClient) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
         this.emailService = emailService;
+        this.karmaServiceClient = karmaServiceClient;
+        this.eventsServiceClient = eventsServiceClient;
+        this.notificationServiceClient = notificationServiceClient;
     }
 
     @Override
@@ -155,6 +168,63 @@ public class UserServiceImpl implements UserService {
 
         user.setContrasena(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public boolean setHistorialVisible(Integer id, boolean visible) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        user.setHistorialVisible(visible);
+        userRepository.save(user);
+        return visible;
+    }
+
+    @Override
+    public List<PerfilPublicoDTO> buscarUsuarios(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return List.of();
+        }
+        String t = texto.trim();
+        return userRepository
+                .findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCase(t, t)
+                .stream()
+                .map(this::toPerfilPublico)
+                .toList();
+    }
+
+    @Override
+    public PerfilPublicoDTO getPerfilPublicoByCorreo(String correo) {
+        User user = userRepository.findByCorreo(correo.toLowerCase().trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        return toPerfilPublico(user);
+    }
+
+    @Override
+    @Transactional
+    public void eliminarCuenta(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        // Orden estricto: eventos → karma → notificaciones → usuario.
+        // Cada cliente hace log-and-continue para no bloquear el borrado si un servicio falla.
+        eventsServiceClient.deleteUserEvents(id);
+        karmaServiceClient.deleteKarma(id);
+        notificationServiceClient.deleteUserNotifications(id);
+
+        userRepository.delete(user);
+    }
+
+    // Construye el perfil público resolviendo el karma desde karma_service.
+    private PerfilPublicoDTO toPerfilPublico(User u) {
+        KarmaServiceClient.KarmaInfo info = karmaServiceClient.getKarmaInfo(u.getId());
+        return new PerfilPublicoDTO(
+                u.getNombre(),
+                u.getApellido(),
+                info.karmaScore(),
+                info.categoria(),
+                u.getHistorialVisible()
+        );
     }
 
     @Override

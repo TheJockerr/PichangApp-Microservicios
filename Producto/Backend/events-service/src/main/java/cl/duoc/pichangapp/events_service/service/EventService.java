@@ -35,6 +35,14 @@ public class EventService {
 
     @Transactional
     public EventResponseDTO createEvent(CreateEventRequest request, Integer organizerId) {
+        // Idempotencia: rechaza el mismo organizador + nombre creado en los últimos 10 segundos.
+        LocalDateTime diezSegundosAtras = LocalDateTime.now().minusSeconds(10);
+        if (eventRepository.existsByOrganizerIdAndNameAndCreatedAtAfter(
+                organizerId, request.getName(), diezSegundosAtras)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Evento duplicado. Por favor espera antes de crear otro.");
+        }
+
         Event event = new Event();
         event.setOrganizerId(organizerId);
         event.setName(request.getName());
@@ -45,7 +53,7 @@ public class EventService {
         event.setLocationName(request.getLocationName());
         event.setMaxPlayers(request.getMaxPlayers());
         event.setCurrentPlayers(0);
-        event.setStatus("ACTIVE");
+        event.setStatus("ACTIVO");
         event.setCreatedAt(LocalDateTime.now());
 
         Event saved = eventRepository.save(event);
@@ -54,12 +62,13 @@ public class EventService {
 
     public List<EventResponseDTO> findNearbyEvents(double lat, double lng) {
         LocalDateTime now = LocalDateTime.now();
-        List<Event> activeEvents = eventRepository.findByStatusAndEventDateAfter("ACTIVE", now);
+        List<Event> activeEvents = eventRepository.findByStatusAndEventDateAfter("ACTIVO", now);
+        java.util.Map<Integer, String> nameCache = new java.util.HashMap<>();
 
         return activeEvents.stream()
                 .map(event -> {
                     double distance = calculateDistance(lat, lng, event.getLatitude(), event.getLongitude());
-                    return mapToDTO(event, distance);
+                    return mapToDTO(event, distance, nameCache);
                 })
                 .sorted(Comparator.comparing(EventResponseDTO::getDistanceKm))
                 .collect(Collectors.toList());
@@ -76,7 +85,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventNotFoundException("Event not found"));
 
-        if (!"ACTIVE".equals(event.getStatus())) {
+        if (!"ACTIVO".equals(event.getStatus())) {
             throw new IllegalStateException("Event is not active");
         }
         if (event.getEventDate().isBefore(LocalDateTime.now())) {
@@ -178,7 +187,7 @@ public class EventService {
                     "No puedes finalizar el evento hasta 5 minutos después de su hora de inicio");
         }
 
-        event.setStatus("FINISHED");
+        event.setStatus("FINALIZADO");
         event.setFinishedAt(LocalDateTime.now());
         eventRepository.save(event);
 
@@ -194,17 +203,19 @@ public class EventService {
 
     public List<EventResponseDTO> getMyEvents(Integer userId) {
         List<EventRegistration> registrations = eventRegistrationRepository.findByUserId(userId);
+        java.util.Map<Integer, String> nameCache = new java.util.HashMap<>();
         return registrations.stream()
                 .map(reg -> eventRepository.findById(reg.getEventId()).orElse(null))
                 .filter(event -> event != null)
-                .map(event -> mapToDTO(event, null))
+                .map(event -> mapToDTO(event, null, nameCache))
                 .collect(Collectors.toList());
     }
 
     public List<EventResponseDTO> getOrganizingEvents(Integer userId) {
+        java.util.Map<Integer, String> nameCache = new java.util.HashMap<>();
         return eventRepository.findByOrganizerId(userId).stream()
-                .filter(event -> "ACTIVE".equals(event.getStatus()))
-                .map(event -> mapToDTO(event, null))
+                .filter(event -> "ACTIVO".equals(event.getStatus()))
+                .map(event -> mapToDTO(event, null, nameCache))
                 .collect(Collectors.toList());
     }
 
@@ -230,6 +241,34 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento no encontrado"));
         cancelEventAndCompensate(event);
+    }
+
+    /**
+     * Borrado de cuenta: cancela todos los eventos ACTIVO que organiza el usuario
+     * (mismo flujo de compensación que DELETE /{id}) y elimina sus inscripciones como
+     * participante en otros eventos. Lo invoca users-service con token interno.
+     */
+    @Transactional
+    public void deleteEventsByUser(Integer userId) {
+        // 1. Cancelar los eventos ACTIVO organizados por el usuario.
+        List<Event> organizados = eventRepository.findByOrganizerId(userId).stream()
+                .filter(e -> "ACTIVO".equals(e.getStatus()))
+                .collect(Collectors.toList());
+        for (Event e : organizados) {
+            cancelEventAndCompensate(e);
+        }
+
+        // 2. Eliminar las inscripciones del usuario como participante (ajustando cupos).
+        List<EventRegistration> inscripciones = eventRegistrationRepository.findByUserId(userId);
+        for (EventRegistration reg : inscripciones) {
+            eventRepository.findById(reg.getEventId()).ifPresent(ev -> {
+                if ("ACTIVO".equals(ev.getStatus()) && ev.getCurrentPlayers() != null && ev.getCurrentPlayers() > 0) {
+                    ev.setCurrentPlayers(ev.getCurrentPlayers() - 1);
+                    eventRepository.save(ev);
+                }
+            });
+            eventRegistrationRepository.delete(reg);
+        }
     }
 
     /**
@@ -280,7 +319,7 @@ public class EventService {
         }
 
         // Cambiar status del evento a CANCELLED
-        event.setStatus("CANCELLED");
+        event.setStatus("CANCELADO");
         eventRepository.save(event);
     }
 
@@ -296,6 +335,11 @@ public class EventService {
     }
 
     private EventResponseDTO mapToDTO(Event event, Double distance) {
+        return mapToDTO(event, distance, new java.util.HashMap<>());
+    }
+
+    // Variante con cache de nombres para evitar N+1 llamadas a users-service en listados.
+    private EventResponseDTO mapToDTO(Event event, Double distance, java.util.Map<Integer, String> nameCache) {
         EventResponseDTO dto = new EventResponseDTO();
         dto.setId(event.getId());
         dto.setOrganizerId(event.getOrganizerId());
@@ -311,6 +355,7 @@ public class EventService {
         dto.setCreatedAt(event.getCreatedAt());
         dto.setFinishedAt(event.getFinishedAt());
         dto.setDistanceKm(distance);
+        dto.setNombreCreador(nameCache.computeIfAbsent(event.getOrganizerId(), usersServiceClient::getNombreCreador));
         return dto;
     }
 

@@ -75,4 +75,15 @@ public class NotificationController {
         Page<NotificationResponseDTO> history = notificationService.getNotificationHistory(userId, pageable);
         return ResponseEntity.ok(history);
     }
+
+    /**
+     * Elimina todo el historial de notificaciones de un usuario.
+     * Uso interno: borrado de cuenta desde users-service.
+     * DELETE /api/v1/notifications/{userId}
+     */
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUserNotifications(@PathVariable String userId) {
+        notificationService.deleteNotificationsByUserId(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

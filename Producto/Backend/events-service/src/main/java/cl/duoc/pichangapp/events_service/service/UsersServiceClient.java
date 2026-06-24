@@ -66,4 +66,41 @@ public class UsersServiceClient {
         }
         return null;
     }
+
+    /**
+     * Devuelve "nombre apellido" del usuario, o "Organizador" como fallback si no se
+     * puede resolver (el listado de eventos no debe romperse por esto).
+     */
+    public String getNombreCreador(Integer userId) {
+        if (userId == null) {
+            return "Organizador";
+        }
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs != null) {
+                String authHeader = attrs.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
+                if (authHeader != null) {
+                    headers.set(HttpHeaders.AUTHORIZATION, authHeader);
+                }
+            }
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+            String url = usersServiceUrl + "/api/v1/users/" + userId;
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url, HttpMethod.GET, entity,
+                    (Class<Map<String, Object>>) (Class<?>) Map.class);
+            Map<String, Object> body = response.getBody();
+            if (body != null) {
+                String nombre = body.get("nombre") != null ? body.get("nombre").toString() : "";
+                String apellido = body.get("apellido") != null ? body.get("apellido").toString() : "";
+                String completo = (nombre + " " + apellido).trim();
+                if (!completo.isBlank()) {
+                    return completo;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("No se pudo resolver el nombre del usuario {}: {}", userId, e.getMessage());
+        }
+        return "Organizador";
+    }
 }

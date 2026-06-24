@@ -48,6 +48,17 @@ public class KarmaService {
         return buildResponseDTO(score);
     }
 
+    /**
+     * Elimina el KarmaScore (y su historial por cascade/orphanRemoval) de un usuario.
+     * Idempotente: si el usuario no tiene karma, no hace nada.
+     * Lo usa users-service al eliminar una cuenta.
+     */
+    @Transactional
+    public void deleteKarmaByUserId(String userId) {
+        karmaScoreRepository.findByUserId(userId)
+                .ifPresent(karmaScoreRepository::delete);
+    }
+
     @Transactional
     public KarmaResponseDTO processCheckIn(CheckInEventDTO dto) {
         KarmaScore score = getOrCreateKarmaScore(dto.userId());
