@@ -46,6 +46,7 @@ import java.time.LocalTime
 @Composable
 fun HomeScreen(
     navController: NavController? = null,
+    onOpenDrawer: (() -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -57,7 +58,7 @@ fun HomeScreen(
             title = "Algo salió mal",
             message = state.error!!
         )
-        else -> HomeContent(state = state, navController = navController)
+        else -> HomeContent(state = state, navController = navController, onOpenDrawer = onOpenDrawer)
     }
 }
 
@@ -69,7 +70,7 @@ private data class QuickAction(
 )
 
 @Composable
-private fun HomeContent(state: HomeUiState, navController: NavController?) {
+private fun HomeContent(state: HomeUiState, navController: NavController?, onOpenDrawer: (() -> Unit)? = null) {
     val user = state.user
     val karma = state.karma
     val nombre = user?.nombre?.takeIf { it.isNotBlank() } ?: "Jugador"
@@ -116,7 +117,7 @@ private fun HomeContent(state: HomeUiState, navController: NavController?) {
                 Avatar(
                     name = fullName,
                     size = 52.dp,
-                    onClick = { navController?.navigate("profile") }
+                    onClick = { onOpenDrawer?.invoke() }
                 )
             }
         }

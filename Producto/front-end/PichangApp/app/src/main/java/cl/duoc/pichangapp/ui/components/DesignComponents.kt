@@ -103,6 +103,53 @@ fun StatusChip(
     }
 }
 
+// ─── Estado de evento en español (color por estado) ───────────────────────────
+/** Color del badge según el estado del evento (valores en español del backend). */
+fun colorParaStatus(status: String): Color = when (status.uppercase().trim()) {
+    "ACTIVO"     -> Color(0xFF2E7D32) // verde
+    "FINALIZADO" -> Color(0xFF1565C0) // azul
+    "CANCELADO"  -> Color(0xFFC62828) // rojo
+    else         -> Color(0xFF546E7A) // gris
+}
+
+/** Etiqueta legible del estado (capitaliza; tolera valores en inglés heredados). */
+fun statusLabel(status: String): String = when (status.uppercase().trim()) {
+    "ACTIVO", "ACTIVE"        -> "Activo"
+    "FINALIZADO", "FINISHED"  -> "Finalizado"
+    "CANCELADO", "CANCELLED"  -> "Cancelado"
+    else -> status.lowercase().replaceFirstChar { it.uppercase() }
+}
+
+/** Chip de estado de evento con color e ícono de punto. */
+@Composable
+fun EventStatusChip(status: String, modifier: Modifier = Modifier) {
+    val color = colorParaStatus(status)
+    Surface(
+        shape    = RoundedCornerShape(20.dp),
+        color    = color.copy(alpha = 0.14f),
+        modifier = modifier
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(color)
+            )
+            Text(
+                text       = statusLabel(status),
+                style      = MaterialTheme.typography.labelSmall,
+                color      = color,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
 // ─── SlotIndicator (cupos: ocupados / total) ──────────────────────────────────
 @Composable
 fun SlotIndicator(

@@ -10,100 +10,113 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import cl.duoc.pichangapp.ui.components.PichangButton
+import cl.duoc.pichangapp.ui.components.PichangSnackbar
 import cl.duoc.pichangapp.ui.components.PichangTextField
 import cl.duoc.pichangapp.ui.components.PichangTopBar
 
 @Composable
 fun ChangePasswordScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: ChangePasswordViewModel = hiltViewModel()
 ) {
     var current by remember { mutableStateOf("") }
     var nueva by remember { mutableStateOf("") }
     var confirmar by remember { mutableStateOf("") }
     var visible by remember { mutableStateOf(false) }
-    var info by remember { mutableStateOf<String?>(null) }
+
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val mismatch = confirmar.isNotEmpty() && nueva != confirmar
     val tooShort = nueva.isNotEmpty() && nueva.length < 6
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        PichangTopBar(title = "Cambiar contraseña", onNavigateBack = onNavigateBack)
-
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp)
-        ) {
-            val transform: VisualTransformation =
-                if (visible) VisualTransformation.None else PasswordVisualTransformation()
-            val eye: @Composable () -> Unit = {
-                IconButton(onClick = { visible = !visible }) {
-                    Icon(
-                        if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (visible) "Ocultar" else "Mostrar"
-                    )
-                }
+    // Reacciona a éxito / error del backend.
+    LaunchedEffect(state.success, state.errorMessage) {
+        when {
+            state.success -> {
+                snackbarHostState.showSnackbar("Contraseña actualizada correctamente")
+                viewModel.consumed()
+                onNavigateBack()
             }
+            state.errorMessage != null -> {
+                snackbarHostState.showSnackbar(state.errorMessage!!)
+                viewModel.consumed()
+            }
+        }
+    }
 
-            PichangTextField(
-                value = current, onValueChange = { current = it },
-                label = "Contraseña actual",
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = transform, trailingIcon = eye
-            )
-            Spacer(Modifier.height(12.dp))
-            PichangTextField(
-                value = nueva, onValueChange = { nueva = it },
-                label = "Nueva contraseña",
-                modifier = Modifier.fillMaxWidth(),
-                isError = tooShort,
-                errorMessage = if (tooShort) "Mínimo 6 caracteres" else null,
-                visualTransformation = transform, trailingIcon = eye
-            )
-            Spacer(Modifier.height(12.dp))
-            PichangTextField(
-                value = confirmar, onValueChange = { confirmar = it },
-                label = "Confirmar nueva contraseña",
-                modifier = Modifier.fillMaxWidth(),
-                isError = mismatch,
-                errorMessage = if (mismatch) "Las contraseñas no coinciden" else null,
-                visualTransformation = transform, trailingIcon = eye
-            )
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) { PichangSnackbar(it) } },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            PichangTopBar(title = "Cambiar contraseña", onNavigateBack = onNavigateBack)
 
-            Spacer(Modifier.height(24.dp))
-
-            PichangButton(
-                onClick = {
-                    // TODO: conectar a endpoint de cambio de contraseña cuando esté disponible.
-                    info = when {
-                        current.isBlank() || nueva.isBlank() || confirmar.isBlank() ->
-                            "Completa todos los campos."
-                        tooShort -> "La nueva contraseña debe tener al menos 6 caracteres."
-                        nueva != confirmar -> "Las contraseñas no coinciden."
-                        else -> "Contraseña validada. Se actualizará en el servidor próximamente."
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp)
+            ) {
+                val transform: VisualTransformation =
+                    if (visible) VisualTransformation.None else PasswordVisualTransformation()
+                val eye: @Composable () -> Unit = {
+                    IconButton(onClick = { visible = !visible }) {
+                        Icon(
+                            if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (visible) "Ocultar" else "Mostrar"
+                        )
                     }
-                },
-                text = "Actualizar contraseña",
-                enabled = current.isNotBlank() && nueva.isNotBlank() && confirmar.isNotBlank() && !mismatch && !tooShort
-            )
+                }
 
-            info?.let {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                PichangTextField(
+                    value = current, onValueChange = { current = it },
+                    label = "Contraseña actual",
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = transform, trailingIcon = eye
+                )
+                Spacer(Modifier.height(12.dp))
+                PichangTextField(
+                    value = nueva, onValueChange = { nueva = it },
+                    label = "Nueva contraseña",
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = tooShort,
+                    errorMessage = if (tooShort) "Mínimo 6 caracteres" else null,
+                    visualTransformation = transform, trailingIcon = eye
+                )
+                Spacer(Modifier.height(12.dp))
+                PichangTextField(
+                    value = confirmar, onValueChange = { confirmar = it },
+                    label = "Confirmar nueva contraseña",
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = mismatch,
+                    errorMessage = if (mismatch) "Las contraseñas no coinciden" else null,
+                    visualTransformation = transform, trailingIcon = eye
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                PichangButton(
+                    onClick = { viewModel.cambiarPassword(current, nueva) },
+                    text = "Actualizar contraseña",
+                    isLoading = state.isLoading,
+                    enabled = current.isNotBlank() && nueva.isNotBlank() &&
+                        confirmar.isNotBlank() && !mismatch && !tooShort && !state.isLoading
                 )
             }
         }

@@ -56,6 +56,10 @@ class EventsViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // Bloqueo anti doble-tap al crear un evento (evita eventos duplicados).
+    private val _isCreating = MutableStateFlow(false)
+    val isCreating: StateFlow<Boolean> = _isCreating.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -74,7 +78,7 @@ class EventsViewModel @Inject constructor(
             try {
                 lastLat = lat
                 lastLng = lng
-                _events.value = eventRepository.getEvents(lat, lng).filter { it.status == "ACTIVE" }
+                _events.value = eventRepository.getEvents(lat, lng).filter { it.status == "ACTIVO" }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
@@ -87,7 +91,7 @@ class EventsViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _myEvents.value = eventRepository.getMyEvents().filter { it.status == "ACTIVE" }
+                _myEvents.value = eventRepository.getMyEvents().filter { it.status == "ACTIVO" }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
@@ -100,7 +104,7 @@ class EventsViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _organizingEvents.value = eventRepository.getOrganizingEvents().filter { it.status == "ACTIVE" }
+                _organizingEvents.value = eventRepository.getOrganizingEvents().filter { it.status == "ACTIVO" }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
@@ -142,11 +146,16 @@ class EventsViewModel @Inject constructor(
     }
     
     suspend fun createEvent(request: CreateEventRequest): Result<Unit> {
+        // Si ya hay una creación en curso, ignorar (anti doble-tap).
+        if (_isCreating.value) return Result.failure(IllegalStateException("Creación en curso"))
+        _isCreating.value = true
         return try {
             eventRepository.createEvent(request)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        } finally {
+            _isCreating.value = false
         }
     }
     
