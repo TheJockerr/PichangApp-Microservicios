@@ -2,6 +2,7 @@ package cl.duoc.pichangapp.ui.screens.events
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -223,6 +225,29 @@ fun EventDetailScreen(
                         Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(e.locationName, style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    // ── Organizado por (nombre del creador, tappable hacia su perfil) ──
+                    e.nombreCreador?.takeIf { it.isNotBlank() }?.let { creador ->
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = if (isOrganizer) Modifier else Modifier.clickable {
+                                val partes = creador.trim().split(" ")
+                                val nombre = android.net.Uri.encode(partes.firstOrNull().orEmpty())
+                                val apellido = android.net.Uri.encode(partes.drop(1).joinToString(" "))
+                                navController.navigate("perfil-publico?nombre=$nombre&apellido=$apellido")
+                            }
+                        ) {
+                            Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "Organizado por: $creador",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isOrganizer) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))

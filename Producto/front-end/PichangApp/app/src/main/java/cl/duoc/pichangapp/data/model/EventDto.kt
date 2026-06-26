@@ -16,7 +16,8 @@ data class EventDto(
     val currentPlayers: Int,
     val status: String,
     val createdAt: String,
-    val distanceKm: Double?
+    val distanceKm: Double?,
+    val nombreCreador: String? = null   // nombre del organizador (lo envía el backend)
 )
 
 @Stable

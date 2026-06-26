@@ -34,7 +34,7 @@ import cl.duoc.pichangapp.ui.components.PichangCard
 import cl.duoc.pichangapp.ui.components.EmptyState
 import cl.duoc.pichangapp.ui.components.LoadingScreen
 import cl.duoc.pichangapp.ui.components.SportChip
-import cl.duoc.pichangapp.ui.components.StatusChip
+import cl.duoc.pichangapp.ui.components.EventStatusChip
 import cl.duoc.pichangapp.ui.components.SlotIndicator
 import cl.duoc.pichangapp.ui.components.sportColor
 import com.google.android.gms.location.LocationServices
@@ -322,7 +322,7 @@ fun EventCard(event: cl.duoc.pichangapp.data.model.EventDto, onClick: () -> Unit
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatusChip(text = event.status)
+                    EventStatusChip(status = event.status)
                     SlotIndicator(
                         filled = event.currentPlayers,
                         total = event.maxPlayers,
