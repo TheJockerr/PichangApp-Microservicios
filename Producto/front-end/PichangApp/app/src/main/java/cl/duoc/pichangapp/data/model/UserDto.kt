@@ -16,3 +16,11 @@ data class PasswordUpdateRequest(
     val currentPassword: String,
     val newPassword: String
 )
+
+data class HistorialVisibleRequest(
+    val visible: Boolean
+)
+
+data class HistorialVisibleResponse(
+    val historialVisible: Boolean
+)

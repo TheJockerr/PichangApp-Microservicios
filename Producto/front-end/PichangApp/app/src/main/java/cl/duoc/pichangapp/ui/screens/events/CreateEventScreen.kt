@@ -52,6 +52,7 @@ fun CreateEventScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val isCreating by viewModel.isCreating.collectAsState()
 
     var step by remember { mutableIntStateOf(1) }
 
@@ -362,35 +363,46 @@ fun CreateEventScreen(
                         Icon(Icons.Filled.ArrowForward, contentDescription = null)
                     }
                 } else {
-                    Button(onClick = {
-                        if (selectedLocation == null) {
-                            locationError = true
-                            scope.launch { snackbarHostState.showSnackbar("Debes seleccionar una ubicación") }
-                            return@Button
-                        }
-                        
-                        val eventDateStr = selectedLocalDateTime!!.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                        scope.launch {
-                            val result = viewModel.createEvent(
-                                CreateEventRequest(
-                                    name = name,
-                                    sport = sport,
-                                    eventDate = eventDateStr,
-                                    latitude = selectedLocation!!.latitude,
-                                    longitude = selectedLocation!!.longitude,
-                                    locationName = locationName,
-                                    maxPlayers = maxPlayers.toIntOrNull() ?: 10
+                    Button(
+                        enabled = !isCreating,   // bloquea doble-tap mientras se crea
+                        onClick = {
+                            if (selectedLocation == null) {
+                                locationError = true
+                                scope.launch { snackbarHostState.showSnackbar("Debes seleccionar una ubicación") }
+                                return@Button
+                            }
+
+                            val eventDateStr = selectedLocalDateTime!!.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                            scope.launch {
+                                val result = viewModel.createEvent(
+                                    CreateEventRequest(
+                                        name = name,
+                                        sport = sport,
+                                        eventDate = eventDateStr,
+                                        latitude = selectedLocation!!.latitude,
+                                        longitude = selectedLocation!!.longitude,
+                                        locationName = locationName,
+                                        maxPlayers = maxPlayers.toIntOrNull() ?: 10
+                                    )
                                 )
-                            )
-                            if (result.isSuccess) {
-                                snackbarHostState.showSnackbar("¡Partido creado exitosamente!")
-                                navController.popBackStack()
-                            } else {
-                                snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Error al crear")
+                                if (result.isSuccess) {
+                                    snackbarHostState.showSnackbar("¡Partido creado exitosamente!")
+                                    navController.popBackStack()
+                                } else {
+                                    snackbarHostState.showSnackbar(result.exceptionOrNull()?.message ?: "Error al crear")
+                                }
                             }
                         }
-                    }) {
-                        Text("Crear Partido")
+                    ) {
+                        if (isCreating) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Crear Partido")
+                        }
                     }
                 }
             }

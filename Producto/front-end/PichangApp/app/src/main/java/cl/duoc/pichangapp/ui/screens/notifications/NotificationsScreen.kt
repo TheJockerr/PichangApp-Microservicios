@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import cl.duoc.pichangapp.core.util.TimeUtils
 import cl.duoc.pichangapp.data.model.NotificationDto
 import cl.duoc.pichangapp.ui.components.PichangCard
 import cl.duoc.pichangapp.ui.components.LoadingScreen
@@ -184,10 +185,12 @@ fun NotificationItem(notification: NotificationDto) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(notification.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(4.dp))
+                // El body trae el nombre del evento (lo envía el backend), nunca el ID.
                 Text(notification.body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (notification.timestamp != null) {
+                val cuando = TimeUtils.relativeTime(notification.createdAt ?: notification.timestamp)
+                if (cuando.isNotBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(notification.timestamp.substringBefore("T"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                    Text(cuando, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 }
             }
         }

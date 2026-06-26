@@ -1,0 +1,17 @@
+package cl.duoc.pichangapp.data.model
+
+import androidx.compose.runtime.Stable
+
+/**
+ * Perfil público de otro usuario (lo que devuelve el backend en
+ * GET /api/v1/users/buscar y /api/v1/users/perfil-publico/{correo}).
+ * No incluye correo ni id por privacidad.
+ */
+@Stable
+data class PerfilPublicoDto(
+    val nombre: String,
+    val apellido: String,
+    val karmaScore: Int = 0,
+    val categoriaKarma: String = "Sin categoría",
+    val historialVisible: Boolean = true
+)
