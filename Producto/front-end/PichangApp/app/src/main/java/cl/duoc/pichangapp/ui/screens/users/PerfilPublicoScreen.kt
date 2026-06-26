@@ -47,8 +47,9 @@ fun PerfilPublicoScreen(
                 EmptyState(emoji = "🤷", title = "Perfil no disponible", message = state.error ?: "No se encontró el perfil")
             else -> {
                 val perfil = state.perfil!!
-                val fullName = "${perfil.nombre} ${perfil.apellido}".trim()
-                val color = karmaColor(perfil.categoriaKarma)
+                val fullName = "${perfil.nombre.orEmpty()} ${perfil.apellido.orEmpty()}".trim()
+                val categoria = perfil.categoriaKarma.orEmpty().ifBlank { "Sin categoría" }
+                val color = karmaColor(categoria)
 
                 Column(
                     modifier = Modifier
@@ -92,7 +93,7 @@ fun PerfilPublicoScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(12.dp))
-                            CategoryChip(label = perfil.categoriaKarma, color = color, filled = true)
+                            CategoryChip(label = categoria, color = color, filled = true)
                         }
                     }
 

@@ -156,7 +156,11 @@ fun BuscarEventosTab(events: List<cl.duoc.pichangapp.data.model.EventDto>, lat: 
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
-                    properties = MapProperties(isMyLocationEnabled = true)
+                    properties = MapProperties(isMyLocationEnabled = true),
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = false,
+                        scrollGesturesEnabled = true
+                    )
                 ) {
                     events.forEach { event ->
                         Marker(

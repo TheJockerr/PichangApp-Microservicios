@@ -103,8 +103,8 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
 
         // ── Destinos principales (con Drawer vía MainScaffold) ──────────────────
         composable(Screen.Home.route) {
-            MainScaffold(navController = navController, showFab = true) { openDrawer ->
-                HomeScreen(navController = navController, onOpenDrawer = openDrawer)
+            MainScaffold(navController = navController, showFab = true) { _ ->
+                HomeScreen(navController = navController)
             }
         }
         composable(Screen.Karma.route) {

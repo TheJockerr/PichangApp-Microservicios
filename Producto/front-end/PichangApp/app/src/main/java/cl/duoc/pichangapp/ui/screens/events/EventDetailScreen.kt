@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
@@ -253,6 +254,30 @@ fun EventDetailScreen(
                         Icon(Icons.Filled.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(e.locationName, style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // ── Botón "Cómo llegar" → abre Google Maps con la ubicación ──
+                    FilledTonalButton(
+                        onClick = {
+                            val uri = Uri.parse(
+                                "geo:${e.latitude},${e.longitude}?q=${e.latitude},${e.longitude}(${Uri.encode(e.name)})"
+                            )
+                            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                                setPackage("com.google.android.apps.maps")
+                            }
+                            if (intent.resolveActivity(context.packageManager) != null) {
+                                context.startActivity(intent)
+                            } else {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Directions, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Cómo llegar")
                     }
 
                     // ── Organizado por (nombre del creador, tappable hacia su perfil) ──

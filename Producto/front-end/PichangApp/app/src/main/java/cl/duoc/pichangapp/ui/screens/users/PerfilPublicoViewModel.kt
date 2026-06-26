@@ -39,9 +39,9 @@ class PerfilPublicoViewModel @Inject constructor(
             try {
                 val resultados = userRepository.buscarUsuarios(nombre.ifBlank { apellido })
                 val match = resultados.firstOrNull {
-                    it.nombre.equals(nombre, ignoreCase = true) &&
-                        it.apellido.equals(apellido, ignoreCase = true)
-                } ?: resultados.firstOrNull { it.nombre.equals(nombre, ignoreCase = true) }
+                    it.nombre?.equals(nombre, ignoreCase = true) == true &&
+                        it.apellido?.equals(apellido, ignoreCase = true) == true
+                } ?: resultados.firstOrNull { it.nombre?.equals(nombre, ignoreCase = true) == true }
                 ?: resultados.firstOrNull()
 
                 if (match != null) {

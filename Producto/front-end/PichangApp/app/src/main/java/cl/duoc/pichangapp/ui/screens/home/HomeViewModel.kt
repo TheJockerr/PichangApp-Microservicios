@@ -7,7 +7,9 @@ import cl.duoc.pichangapp.core.datastore.TokenDataStore
 import cl.duoc.pichangapp.core.util.JwtUtils
 import cl.duoc.pichangapp.core.util.Result
 import cl.duoc.pichangapp.data.model.KarmaDto
+import cl.duoc.pichangapp.data.model.KarmaHistoryDto
 import cl.duoc.pichangapp.data.model.UserDto
+import cl.duoc.pichangapp.data.repository.EventRepository
 import cl.duoc.pichangapp.domain.usecase.GetKarmaUseCase
 import cl.duoc.pichangapp.domain.usecase.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +23,9 @@ import javax.inject.Inject
 private const val TAG = "PICHANGAPP_DEBUG"
 private const val BASE_URL = "https://pichangapp-microservicios-production.up.railway.app"
 
+// Patrón que detecta "evento: 42" o "evento: 42)" al final del reason del backend
+private val EVENT_ID_REGEX_HOME = Regex("""evento:\s*(\d+)\)?$""")
+
 data class HomeUiState(
     val isLoading: Boolean = true,
     val user: UserDto? = null,
@@ -32,7 +37,8 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getKarmaUseCase: GetKarmaUseCase,
-    private val tokenDataStore: TokenDataStore
+    private val tokenDataStore: TokenDataStore,
+    private val eventRepository: EventRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -110,8 +116,13 @@ class HomeViewModel @Inject constructor(
                         }
                         Log.d(TAG, "[HomeViewModel] Karma OK → puntaje=$score categoría='$calculatedCategory'")
                         val updatedKarma = result.data.copy(categoria = calculatedCategory)
-                        _state.value = _state.value.copy(karma = updatedKarma)
-                        dataLoaded = true // Marcar datos como cargados exitosamente
+
+                        // Resolver nombres de evento en el historial del widget del Home
+                        val historialConNombres = resolverNombresDeEvento(updatedKarma.history)
+                        val karmaFinal = updatedKarma.copy(history = historialConNombres)
+
+                        _state.value = _state.value.copy(karma = karmaFinal)
+                        dataLoaded = true
                     }
                     is Result.Error -> {
                         Log.e(TAG, "[HomeViewModel] Error karma: ${result.message}")
@@ -119,6 +130,33 @@ class HomeViewModel @Inject constructor(
                     is Result.Loading -> {}
                 }
             }
+        }
+    }
+
+    // Extrae IDs de evento únicos de los reasons, los resuelve y reemplaza el ID por el nombre.
+    private suspend fun resolverNombresDeEvento(history: List<KarmaHistoryDto>): List<KarmaHistoryDto> {
+        val idsUnicos = history.mapNotNull { item ->
+            EVENT_ID_REGEX_HOME.find(item.reason)?.groupValues?.get(1)?.toIntOrNull()
+        }.toSet()
+
+        if (idsUnicos.isEmpty()) return history
+
+        val idANombre = mutableMapOf<Int, String>()
+        for (id in idsUnicos) {
+            try {
+                val evento = eventRepository.getEventById(id)
+                idANombre[id] = evento.name
+            } catch (e: Exception) {
+                Log.w(TAG, "[HomeViewModel] No se pudo resolver evento $id: ${e.message}")
+            }
+        }
+
+        return history.map { item ->
+            val match = EVENT_ID_REGEX_HOME.find(item.reason)
+            val id = match?.groupValues?.get(1)?.toIntOrNull()
+            val nombre = id?.let { idANombre[it] }
+            if (nombre != null) item.copy(reason = item.reason.replace(match!!.value, "evento: $nombre"))
+            else item
         }
     }
 }

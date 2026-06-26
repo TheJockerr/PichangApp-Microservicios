@@ -9,9 +9,9 @@ import androidx.compose.runtime.Stable
  */
 @Stable
 data class PerfilPublicoDto(
-    val nombre: String,
-    val apellido: String,
+    val nombre: String? = null,
+    val apellido: String? = null,
     val karmaScore: Int = 0,
-    val categoriaKarma: String = "Sin categoría",
+    val categoriaKarma: String? = null,
     val historialVisible: Boolean = true
 )

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -96,6 +97,10 @@ fun CreateEventScreen(
         position = CameraPosition.fromLatLngZoom(LatLng(-33.4489, -70.6693), 12f)
     }
 
+    // Cuando el usuario toca el mapa, se deshabilita el verticalScroll del padre
+    // para que el mapa pueda recibir los gestos de un dedo sin interferencia.
+    var isMapBeingTouched by remember { mutableStateOf(false) }
+
     // Reinicia el estado de búsqueda al abrir la pantalla.
     LaunchedEffect(Unit) { viewModel.resetAddressSearch() }
 
@@ -140,7 +145,7 @@ fun CreateEventScreen(
                 modifier = Modifier.weight(1f).fillMaxWidth()
             ) { targetStep ->
                 Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    modifier = Modifier.verticalScroll(rememberScrollState(), enabled = !isMapBeingTouched),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     when (targetStep) {
@@ -304,7 +309,20 @@ fun CreateEventScreen(
                                 }
                             }
 
-                            Box(modifier = Modifier.fillMaxWidth().height(250.dp).background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(250.dp)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
+                                    .pointerInput(Unit) {
+                                        awaitPointerEventScope {
+                                            while (true) {
+                                                val event = awaitPointerEvent()
+                                                isMapBeingTouched = event.changes.any { it.pressed }
+                                            }
+                                        }
+                                    }
+                            ) {
                                 GoogleMap(
                                     modifier = Modifier.fillMaxSize(),
                                     cameraPositionState = cameraPositionState,

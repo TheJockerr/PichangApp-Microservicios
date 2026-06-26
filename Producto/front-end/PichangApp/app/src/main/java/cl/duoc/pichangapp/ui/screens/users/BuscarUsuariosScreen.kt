@@ -76,7 +76,7 @@ fun BuscarUsuariosScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                items(state.results, key = { it.nombre + "|" + it.apellido }) { perfil ->
+                items(state.results, key = { it.nombre.orEmpty() + "|" + it.apellido.orEmpty() }) { perfil ->
                     UsuarioResultRow(perfil = perfil) {
                         val nombre = android.net.Uri.encode(perfil.nombre)
                         val apellido = android.net.Uri.encode(perfil.apellido)
@@ -90,7 +90,8 @@ fun BuscarUsuariosScreen(
 
 @Composable
 private fun UsuarioResultRow(perfil: PerfilPublicoDto, onClick: () -> Unit) {
-    val fullName = "${perfil.nombre} ${perfil.apellido}".trim()
+    val fullName = "${perfil.nombre.orEmpty()} ${perfil.apellido.orEmpty()}".trim()
+    val categoria = perfil.categoriaKarma.orEmpty().ifBlank { "Sin categoría" }
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.large,
@@ -102,19 +103,19 @@ private fun UsuarioResultRow(perfil: PerfilPublicoDto, onClick: () -> Unit) {
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Avatar(name = fullName, size = 48.dp)
+            Avatar(name = fullName.ifBlank { "?" }, size = 48.dp)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = fullName,
+                    text = fullName.ifBlank { "Usuario" },
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
                 Spacer(Modifier.height(6.dp))
                 CategoryChip(
-                    label = "${perfil.categoriaKarma} · ${perfil.karmaScore} pts",
-                    color = karmaColor(perfil.categoriaKarma),
+                    label = "$categoria · ${perfil.karmaScore} pts",
+                    color = karmaColor(categoria),
                     filled = false
                 )
             }
