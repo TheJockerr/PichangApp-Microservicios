@@ -159,7 +159,10 @@ fun BuscarEventosTab(events: List<cl.duoc.pichangapp.data.model.EventDto>, lat: 
                     properties = MapProperties(isMyLocationEnabled = true),
                     uiSettings = MapUiSettings(
                         zoomControlsEnabled = false,
-                        scrollGesturesEnabled = true
+                        scrollGesturesEnabled = true,
+                        zoomGesturesEnabled = true,
+                        tiltGesturesEnabled = true,
+                        rotationGesturesEnabled = true
                     )
                 ) {
                     events.forEach { event ->

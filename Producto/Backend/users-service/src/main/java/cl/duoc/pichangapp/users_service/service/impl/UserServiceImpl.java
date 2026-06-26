@@ -219,6 +219,7 @@ public class UserServiceImpl implements UserService {
     private PerfilPublicoDTO toPerfilPublico(User u) {
         KarmaServiceClient.KarmaInfo info = karmaServiceClient.getKarmaInfo(u.getId());
         return new PerfilPublicoDTO(
+                u.getCorreo(),
                 u.getNombre(),
                 u.getApellido(),
                 info.karmaScore(),

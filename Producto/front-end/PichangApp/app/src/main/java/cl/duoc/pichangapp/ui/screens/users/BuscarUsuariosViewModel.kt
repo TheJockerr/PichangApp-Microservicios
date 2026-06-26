@@ -86,6 +86,8 @@ class BuscarUsuariosViewModel @Inject constructor(
                         !(perfil.nombre.equals(currentUserNombre, ignoreCase = true) &&
                           perfil.apellido.equals(currentUserApellido, ignoreCase = true))
                     }
+                    // Eliminar duplicados usando correo como clave única
+                    .distinctBy { it.correo ?: (it.nombre.orEmpty() + "|" + it.apellido.orEmpty()) }
 
                 _state.value = _state.value.copy(results = filtrados, isLoading = false, searched = true)
             } catch (e: Exception) {

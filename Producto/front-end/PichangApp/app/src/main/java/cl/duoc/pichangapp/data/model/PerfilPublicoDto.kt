@@ -9,6 +9,7 @@ import androidx.compose.runtime.Stable
  */
 @Stable
 data class PerfilPublicoDto(
+    val correo: String? = null,
     val nombre: String? = null,
     val apellido: String? = null,
     val karmaScore: Int = 0,

@@ -76,7 +76,7 @@ fun BuscarUsuariosScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                items(state.results, key = { it.nombre.orEmpty() + "|" + it.apellido.orEmpty() }) { perfil ->
+                items(state.results, key = { it.correo ?: (it.nombre.orEmpty() + "|" + it.apellido.orEmpty()) }) { perfil ->
                     UsuarioResultRow(perfil = perfil) {
                         val nombre = android.net.Uri.encode(perfil.nombre)
                         val apellido = android.net.Uri.encode(perfil.apellido)
