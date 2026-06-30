@@ -117,3 +117,10 @@ dependencies {
     // Google Places (autocompletado y detalle de lugares)
     implementation("com.google.android.libraries.places:places:3.3.0")
 }
+
+// Dependency locking para builds reproducibles (SonarCloud fix)
+configurations.configureEach {
+    if (isCanBeResolved && !name.startsWith("_")) {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
