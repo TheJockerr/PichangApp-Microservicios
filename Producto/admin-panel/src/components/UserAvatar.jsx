@@ -9,12 +9,11 @@ const PALETTE = [
 ]
 
 function hashStr(str) {
-  let hash = 0
+  const hashArray = new Int32Array(1)
   for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i)
-    hash |= 0
+    hashArray[0] = (hashArray[0] << 5) - hashArray[0] + str.charCodeAt(i)
   }
-  return Math.abs(hash)
+  return Math.abs(hashArray[0])
 }
 
 function getInitials(name) {
