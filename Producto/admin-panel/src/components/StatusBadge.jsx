@@ -6,6 +6,9 @@ const STATUS_MAP = {
   ACTIVE: { label: 'Activo', cls: 'badge-green', dot: '#2E7D32' },
   FINISHED: { label: 'Finalizado', cls: 'badge-blue', dot: '#1565C0' },
   CANCELLED: { label: 'Cancelado', cls: 'badge-red', dot: '#C62828' },
+  ACTIVO: { label: 'Activo', cls: 'badge-green', dot: '#2E7D32' },
+  FINALIZADO: { label: 'Finalizado', cls: 'badge-blue', dot: '#1565C0' },
+  CANCELADO: { label: 'Cancelado', cls: 'badge-red', dot: '#C62828' },
   ENABLED: { label: 'Activo', cls: 'badge-green', dot: '#2E7D32' },
   DISABLED: { label: 'Inactivo', cls: 'badge-gray', dot: '#90A4AE' },
 }

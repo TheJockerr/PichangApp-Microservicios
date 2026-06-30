@@ -36,8 +36,8 @@ export default function DashboardPage() {
   })
 
   const totalUsers = users.length
-  const activos = events.filter((e) => e.status === 'ACTIVE').length
-  const finalizados = events.filter((e) => e.status === 'FINISHED').length
+  const activos = events.filter((e) => e.status === 'ACTIVO').length
+  const finalizados = events.filter((e) => e.status === 'FINALIZADO').length
 
   // Promedio de karma del sistema
   const karmaScores = karmaResults

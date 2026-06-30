@@ -10,9 +10,9 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import EmptyState from '../components/EmptyState'
 
 const STATUS_LABELS = {
-  ACTIVE: 'Activos',
-  FINISHED: 'Finalizados',
-  CANCELLED: 'Cancelados',
+  ACTIVO: 'Activos',
+  FINALIZADO: 'Finalizados',
+  CANCELADO: 'Cancelados',
 }
 
 export default function EventsPage() {
@@ -33,9 +33,9 @@ export default function EventsPage() {
   const list = events ?? []
   const counts = {
     ALL: list.length,
-    ACTIVE: list.filter((e) => e.status === 'ACTIVE').length,
-    FINISHED: list.filter((e) => e.status === 'FINISHED').length,
-    CANCELLED: list.filter((e) => e.status === 'CANCELLED').length,
+    ACTIVO: list.filter((e) => e.status === 'ACTIVO').length,
+    FINALIZADO: list.filter((e) => e.status === 'FINALIZADO').length,
+    CANCELADO: list.filter((e) => e.status === 'CANCELADO').length,
   }
   const filtered = list.filter((e) => filter === 'ALL' || e.status === filter)
 
@@ -47,13 +47,13 @@ export default function EventsPage() {
           <div className="hero-subtitle">Gestión de todos los eventos deportivos</div>
         </div>
         <div className="hero-counter">
-          <span className="hero-counter-num">{counts.ACTIVE}</span>
+          <span className="hero-counter-num">{counts.ACTIVO}</span>
           <span className="hero-counter-label">eventos<br />activos</span>
         </div>
       </div>
 
       <div className="filter-group" style={{ marginBottom: 'var(--space-lg)' }}>
-        {['ALL', 'ACTIVE', 'FINISHED', 'CANCELLED'].map((s) => (
+        {['ALL', 'ACTIVO', 'FINALIZADO', 'CANCELADO'].map((s) => (
           <button
             key={s}
             className={`chip ${filter === s ? 'chip-active' : ''}`}
